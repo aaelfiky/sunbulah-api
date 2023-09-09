@@ -159,8 +159,8 @@ class ProductRepository extends Repository
                 ->leftJoin('product_categories', 'product_categories.product_id', '=', 'product_flat.product_id')
                 ->leftJoin('product_attribute_values', 'product_attribute_values.product_id', '=', 'variants.product_id')
                 ->where('product_flat.channel', $channel)
-                ->where('product_flat.locale', $locale)
-                ->whereNotNull('product_flat.url_key');
+                ->where('product_flat.locale', $locale);
+                // ->whereNotNull('product_flat.url_key');
 
             if ($categoryId) {
                 $qb->whereIn('product_categories.category_id', explode(',', $categoryId));
