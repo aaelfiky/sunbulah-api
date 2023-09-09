@@ -139,6 +139,7 @@ class ProductDataGrid extends DataGrid
             );
 
         $queryBuilder->groupBy('product_flat.product_id', 'product_flat.locale', 'product_flat.channel');
+        // $queryBuilder->groupBy('product_flat.product_id');
 
         $queryBuilder->whereIn('product_flat.locale', $whereInLocales);
         $queryBuilder->whereIn('product_flat.channel', $whereInChannels);

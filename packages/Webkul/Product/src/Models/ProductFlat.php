@@ -233,6 +233,6 @@ class ProductFlat extends Model implements ProductFlatContract
      */
     public function getEditableAttributes($group = null, $skipSuperAttribute = true)
     {
-        return $this->product->getEditableAttributes($groupId, $skipSuperAttribute);
+        return $this->product->getEditableAttributes($group, $skipSuperAttribute);
     }
 }

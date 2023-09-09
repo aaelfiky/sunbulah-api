@@ -4,6 +4,7 @@ namespace Webkul\API\Http\Controllers\Shop;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use App\Jobs\SyncProducts;
 use Webkul\Product\Repositories\ProductRepository;
 use Webkul\API\Http\Resources\Catalog\Product as ProductResource;
 
@@ -74,5 +75,13 @@ class ProductController extends Controller
         return response()->json([
             'data' => app('Webkul\Product\Helpers\ConfigurableOption')->getConfigurationConfig($this->productRepository->findOrFail($id)),
         ]);
+    }
+
+    public function syncProducts(Request $request)
+    {
+        SyncProducts::dispatchAfterResponse();
+        return response()->json([
+            "Status" => "Success"
+        ], 200);
     }
 }
