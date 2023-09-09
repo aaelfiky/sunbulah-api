@@ -3,7 +3,7 @@
 Route::group(['middleware' => ['web', 'admin_locale']], function () {
     Route::prefix(config('app.admin_url'))->group(function () {
 
-        Route::get('/', 'Webkul\Admin\Http\Controllers\Controller@redirectToLogin');
+        Route::get('/', 'Webkul\Admin\Http\Controllers\Controller@redirectToLogin')->name('admin.home');
 
         // Login Routes
         Route::get('/login', 'Webkul\User\Http\Controllers\SessionController@create')->defaults('_config', [

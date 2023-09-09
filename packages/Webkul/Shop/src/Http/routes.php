@@ -1,6 +1,6 @@
 <?php
 
-Route::group(['middleware' => ['web', 'locale', 'theme', 'currency']], function () {
+Route::group(['middleware' => ["redirect.admin", 'web', 'locale', 'theme', 'currency']], function () {
     /**
      * Store front home.
      */

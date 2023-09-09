@@ -19,6 +19,7 @@ class Kernel extends HttpKernel
         \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
         \Illuminate\Session\Middleware\StartSession::class,
         \Webkul\Core\Http\Middleware\SecureHeaders::class,
+        \App\Http\Middleware\RedirectToAdmin::class
     ];
 
     /**
@@ -57,5 +58,6 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'cart.merger' => \Webkul\Checkout\Http\Middleware\CartMerger::class,
+        'redirect.admin' => \App\Http\Middleware\RedirectToAdmin::class,
     ];
 }
