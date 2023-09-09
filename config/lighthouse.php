@@ -56,9 +56,7 @@ return [
     |
     */
 
-    // 'guard' => 'api',
-
-    'guard' => 'admin-api',
+    'guard' => 'api',
 
     /*
     |--------------------------------------------------------------------------
@@ -70,12 +68,8 @@ return [
     |
     */
 
-    // 'schema' => [
-    //     'register' => base_path('graphql/schema.graphql'),
-    // ],
-
     'schema' => [
-        'register' => base_path('vendor/bagisto/graphql-api/src/graphql/schema.graphql'),
+        'register' => base_path('graphql/schema.graphql'),
     ],
 
     /*
@@ -174,28 +168,16 @@ return [
     |
     */
 
-    // 'namespaces' => [
-    //     'models' => ['App', 'App\\Models'],
-    //     'queries' => 'App\\GraphQL\\Queries',
-    //     'mutations' => 'App\\GraphQL\\Mutations',
-    //     'subscriptions' => 'App\\GraphQL\\Subscriptions',
-    //     'interfaces' => 'App\\GraphQL\\Interfaces',
-    //     'unions' => 'App\\GraphQL\\Unions',
-    //     'scalars' => 'App\\GraphQL\\Scalars',
-    //     'directives' => ['App\\GraphQL\\Directives'],
-    //     'validators' => ['App\\GraphQL\\Validators'],
-    // ],
-
     'namespaces' => [
-        'models' => ['App', 'Webkul\\GraphQLAPI\\Models'],
-        'queries' => 'Webkul\\GraphQLAPI\\Queries',
-        'mutations' => 'Webkul\\GraphQLAPI\\Mutations',
-        'subscriptions' => 'Webkul\\GraphQLAPI\\Subscriptions',
-        'interfaces' => 'Webkul\\GraphQLAPI\\Interfaces',
-        'unions' => 'Webkul\\GraphQLAPI\\Unions',
-        'scalars' => 'Webkul\\GraphQLAPI\\Scalars',
-        'directives' => ['Webkul\\GraphQLAPI\\Directives'],
-        'validators' => ['Webkul\\GraphQLAPI\\Validators'],
+        'models' => ['App', 'App\\Models'],
+        'queries' => 'App\\GraphQL\\Queries',
+        'mutations' => 'App\\GraphQL\\Mutations',
+        'subscriptions' => 'App\\GraphQL\\Subscriptions',
+        'interfaces' => 'App\\GraphQL\\Interfaces',
+        'unions' => 'App\\GraphQL\\Unions',
+        'scalars' => 'App\\GraphQL\\Scalars',
+        'directives' => ['App\\GraphQL\\Directives'],
+        'validators' => ['App\\GraphQL\\Validators'],
     ],
 
     /*

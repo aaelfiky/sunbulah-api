@@ -56,6 +56,7 @@ Route::group(['prefix' => 'api'], function ($router) {
 
         Route::get('product-configurable-config/{id}', 'ProductController@configurableConfig');
 
+        Route::get('sync-products', 'ProductController@syncProducts');
 
         //Product Review routes
         Route::get('reviews', 'ResourceController@index')->defaults('_config', [
