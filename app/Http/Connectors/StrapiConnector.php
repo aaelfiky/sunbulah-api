@@ -3,19 +3,27 @@
 namespace App\Http\Connectors;
 
 use Illuminate\Support\Facades\Http;
-use Webkul\Attribute\Models\Attribute;
-use Webkul\Product\Models\Product;
-use Webkul\Product\Models\ProductInventory;
-use Webkul\Product\Models\ProductFlat;
-use Webkul\Product\Models\ProductAttributeValue;
-use Webkul\Category\Models\Category;
-use Webkul\Category\Models\CategoryProxy;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Webkul\Attribute\Models\Attribute;
+use Webkul\Category\Models\Category;
+use Webkul\Customer\Models\Customer;
+use Webkul\Customer\Models\CustomerGroup;
+use Webkul\Customer\Models\UserProduct;
+use Webkul\Customer\Models\UserRecipe;
+use Webkul\Product\Models\Product;
+use Webkul\Product\Models\ProductAttributeValue;
+use Webkul\Product\Models\ProductFlat;
+use Webkul\Product\Models\ProductInventory;
 
 class StrapiConnector {
     
-    
+    /**
+    * Sync Products with Strapi to DB
+    *
+    * @param  string  $locale Defines locale whether english or arabic
+    * @return void
+    */
     public static function syncProducts(string $locale = "en") {
         $base_url = env('STRAPI_URL');
 
@@ -32,6 +40,12 @@ class StrapiConnector {
         }
     }
 
+    /**
+    * Takes a strapi product category as an input and updates this category and its child products
+    *
+    * @param  object  $strapi_category Strapi Category
+    * @return void
+    */
     public static function updateProduct($strapi_category)
     {
         ini_set('max_execution_time', 180); //3 minutes
@@ -116,5 +130,57 @@ class StrapiConnector {
                 "thumbnail" => count($strapi_product["desktop_images"]) > 0 ? $strapi_product["desktop_images"][0]["url"] : null
             ]);
         }
+    }
+
+
+    /**
+    * Syncs strapi users (executed once)
+    *
+    * @param  object  $strapi_category Strapi Category
+    * @return void
+    */
+    public static function syncUsers()
+    {
+        ini_set('max_execution_time', 180); //3 minutes
+
+        $base_url = env('STRAPI_URL');
+
+        Log::info("Started: Syncing Users");
+
+        $endpoint = "/users";
+
+        $response = Http::get($base_url . $endpoint);
+
+        $results = $response->json();
+
+        foreach ($results as $strapi_user) {
+            
+            $customer = Customer::updateOrCreate(["email" => $strapi_user["email"]],
+            [
+                "first_name" => $strapi_user["username"],
+                "last_name" => $strapi_user["username"],
+                "created_at" => $strapi_user["created_at"],
+                "customer_group_id" => CustomerGroup::GENERAL,
+                "updated_at" => $strapi_user["updated_at"]
+            ]);
+
+            foreach ($strapi_user["favoriteRecipes"] as $key => $recipe) {
+                UserRecipe::updateOrCreate([
+                    "customer_id" => $customer->id,
+                    "recipe_id" => $recipe["id"],
+                ], []);
+            }
+
+            foreach ($strapi_user["favoriteProducts"] as $key => $product) {
+                $bagisto_product = Product::firstWhere("slug", $product["slug"]);
+                if (!is_null($bagisto_product)) {
+                    UserProduct::updateOrCreate([
+                        "customer_id" => $customer->id,
+                        "product_id" => $bagisto_product["id"],
+                    ], []);
+                }
+            }
+        }
+        
     }
 }

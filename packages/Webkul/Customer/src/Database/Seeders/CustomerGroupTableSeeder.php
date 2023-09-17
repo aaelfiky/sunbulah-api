@@ -27,6 +27,11 @@ class CustomerGroupTableSeeder extends Seeder
                 'code'            => 'wholesale',
                 'name'            => 'Wholesale',
                 'is_user_defined' => 0,
+            ], [
+                'id'              => 4,
+                'code'            => 'sunbulah_group',
+                'name'            => 'Sunbulah Group',
+                'is_user_defined' => 1,
             ]
         ]);
     }

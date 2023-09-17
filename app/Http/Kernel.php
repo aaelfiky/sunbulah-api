@@ -19,7 +19,8 @@ class Kernel extends HttpKernel
         \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
         \Illuminate\Session\Middleware\StartSession::class,
         \Webkul\Core\Http\Middleware\SecureHeaders::class,
-        \App\Http\Middleware\RedirectToAdmin::class
+        \App\Http\Middleware\RedirectToAdmin::class,
+        \Fruitcake\Cors\HandleCors::class,
     ];
 
     /**

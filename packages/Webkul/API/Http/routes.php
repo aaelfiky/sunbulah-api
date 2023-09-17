@@ -2,6 +2,19 @@
 
 Route::group(['prefix' => 'api'], function ($router) {
 
+    // SOCIAL AUTH
+    Route::group(['namespace' => 'Webkul\API\Http\Controllers\Shop'], function ($router) {
+        Route::get('google/login/url', 'GoogleAuthController@getAuthUrl');
+        Route::post('google/auth/login', 'GoogleAuthController@postLogin');
+        Route::middleware(['auth:api'])->group(function () {
+            Route::get('google/drive', 'GoogleAuthController@getDrive');
+        });
+
+        Route::get('facebook/redirect', 'FacebookAuthController@redirectFacebook');
+        Route::get('facebook/callback', 'FacebookAuthController@facebookCallback');
+    });
+    // END SOCIAL AUTH
+
     Route::group(['namespace' => 'Webkul\API\Http\Controllers\Shop', 'middleware' => ['locale', 'theme', 'currency']], function ($router) {
         //Currency and Locale switcher
         Route::get('switch-currency', 'CoreController@switchCurrency');

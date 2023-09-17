@@ -33,6 +33,9 @@ class Customer extends Authenticatable implements CustomerContract, JWTSubject
         'token',
         'notes',
         'status',
+        'provider_id',
+        'provider_name',
+        'google_access_token'
     ];
 
     protected $hidden = ['password', 'api_token', 'remember_token'];
@@ -168,5 +171,21 @@ class Customer extends Authenticatable implements CustomerContract, JWTSubject
     public function subscription()
     {
         return $this->hasOne(SubscribersListProxy::modelClass(), 'customer_id');
+    }
+
+    /**
+     * Get the customer favorite recipes.
+     */
+    public function recipes()
+    {
+        return $this->hasMany(UserRecipe::class, 'customer_id', 'user_recipes');
+    }
+
+    /**
+     * Get the customer favorite products.
+     */
+    public function products()
+    {
+        return $this->hasMany(UserProduct::class, 'customer_id', 'user_products');
     }
 }

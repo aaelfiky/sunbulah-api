@@ -4,7 +4,9 @@ namespace Webkul\API\Http\Controllers\Shop;
 
 use Illuminate\Support\Facades\Event;
 use Webkul\API\Http\Resources\Customer\Customer as CustomerResource;
+use Illuminate\Support\Facades\Mail;
 use Webkul\Customer\Http\Requests\CustomerLoginRequest;
+use Webkul\Customer\Mail\VerificationEmail;
 use Webkul\Customer\Repositories\CustomerRepository;
 
 class SessionController extends Controller
@@ -62,9 +64,29 @@ class SessionController extends Controller
 
         $customer = auth($this->guard)->user();
 
+        if (!$customer->is_verified) {
+            if (core()->getConfigData('customer.settings.email.verification')) {
+                $token = md5(uniqid(rand(), true));
+                $customer->update(["token" => $token]);
+                try {
+                    Mail::to($request->get('email'))->send(new VerificationEmail(['email' => $request->get('email'), 'token' => $token]));
+                } catch (\Throwable $th) {
+                    logger([
+                        "message" => "failed to send email"
+                    ]);
+                }
+                return response()->json([
+                    'message' => 'Your email is not verified yet.',
+                    'is_verified' => false,
+                    'data'    => new CustomerResource($customer)
+                ]);    
+            }
+        }
+
         return response()->json([
             'token'   => $jwtToken,
             'message' => 'Logged in successfully.',
+            'is_verified' => true,
             'data'    => new CustomerResource($customer),
         ]);
     }

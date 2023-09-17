@@ -6,6 +6,8 @@ use Webkul\Customer\Contracts\CustomerGroup as CustomerGroupContract;
 
 class CustomerGroup extends Model implements CustomerGroupContract
 {
+    public const GENERAL = 2;
+    public const SUNBULAH_GROUP = 4;
     protected $table = 'customer_groups';
 
     protected $fillable = ['name', 'code', 'is_user_defined'];
