@@ -24,12 +24,18 @@ class FacebookAuthController extends Controller
         return Socialite::driver('facebook')->redirect();
     }
 
-    public function facebookCallback()
+    public function facebookCallback(Request $request)
     {
         try {
         
+            logger([
+                "info" => "here"
+            ]);
             $facebook_user = Socialite::driver('facebook')->user();
          
+            logger([
+                "facebook" => $facebook_user
+            ]);
 
             $customer = Customer::where('provider_name', '=', 'facebook')
                 ->where('provider_id', '=', $facebook_user->id)
