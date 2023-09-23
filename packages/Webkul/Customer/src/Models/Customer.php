@@ -35,7 +35,8 @@ class Customer extends Authenticatable implements CustomerContract, JWTSubject
         'status',
         'provider_id',
         'provider_name',
-        'google_access_token'
+        'google_access_token',
+        'twoFA_verified'
     ];
 
     protected $hidden = ['password', 'api_token', 'remember_token'];

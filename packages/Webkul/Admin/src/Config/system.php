@@ -375,6 +375,17 @@ return [
             ],
         ],
     ], [
+        'key'    => 'customer.settings.two_factor_authentication',
+        'name'   => 'admin::app.admin.system.two_factor_authentication',
+        'sort'   => 3,
+        'fields' => [
+            [
+                'name'  => 'verification',
+                'title' => 'admin::app.admin.system.enable_two_factor_authentication',
+                'type'  => 'boolean',
+            ],
+        ]
+    ], [
         'key'    => 'customer.settings.email',
         'name'   => 'admin::app.admin.system.email',
         'sort'   => 3,

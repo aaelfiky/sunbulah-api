@@ -84,10 +84,11 @@ class SessionController extends Controller
         }
 
         return response()->json([
-            'token'   => $jwtToken,
-            'message' => 'Logged in successfully.',
-            'is_verified' => true,
-            'data'    => new CustomerResource($customer),
+            'token'              => $jwtToken,
+            'message'            => 'Logged in successfully.',
+            'is_verified'        => true,
+            'data'               => new CustomerResource($customer),
+            'two_factor_enabled' => core()->getConfigData('customer.settings.two_factor_authentication.verification') ? true : false
         ]);
     }
 

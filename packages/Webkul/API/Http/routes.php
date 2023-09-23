@@ -168,6 +168,10 @@ Route::group(['prefix' => 'api'], function ($router) {
 
         Route::post('customer/register', 'CustomerController@create');
 
+        Route::get('customer/generate-qr', 'CustomerController@generateQRCode');
+
+        Route::post('customer/validate-qr', 'CustomerController@verifyQRCode');
+
         Route::get('customers/{id}', 'CustomerController@get')->defaults('_config', [
             'repository' => 'Webkul\Customer\Repositories\CustomerRepository',
             'resource' => 'Webkul\API\Http\Resources\Customer\Customer',

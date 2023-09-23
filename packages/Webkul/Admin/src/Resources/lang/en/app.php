@@ -1445,6 +1445,8 @@ return [
             'newsletter-subscription'               => 'Allow Newsletter Subscription',
             'email'                                 => 'Email Verification',
             'email-verification'                    => 'Allow Email Verification',
+            'two_factor_authentication'             => 'Two Factor Authentication',
+            'enable_two_factor_authentication'       => 'Enable Two Factor Authentication',
             'sort_order'                            => 'Sort Order',
             'general'                               => 'General',
             'footer'                                => 'Footer',
