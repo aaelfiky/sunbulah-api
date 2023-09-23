@@ -21,7 +21,10 @@ class FacebookAuthController extends Controller
 {
     public function redirectFacebook()
     {
-        return Socialite::driver('facebook')->redirect();
+        return response()->json([
+            'url'   => Socialite::driver('facebook')->redirect(),
+            'message' => 'Facebook URL Generated Successfully'
+        ], 200);
     }
 
     public function facebookCallback(Request $request)
