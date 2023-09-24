@@ -1,6 +1,7 @@
 <?php
 namespace Webkul\API\Http\Controllers\Shop;
 
+use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use JWTAuth;
@@ -13,6 +14,7 @@ use Exception;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Log;
+use GuzzleHttp\Exception\RequestException;
 /**
  * Facebook Controller
  *
@@ -74,6 +76,21 @@ class FacebookAuthController extends Controller
                 'data'    => new CustomerResource($customer),
             ], 201);
         
+        } catch (ClientException $e) {
+            // Caught a Guzzle ClientException
+            Log::error($e->getMessage());
+            return response()->json([
+                'message' => $e->getMessage(),
+                'info' => "Client Exception",
+                'data'    => null,
+            ], 400);
+        } catch (RequestException $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'message' => $e->getMessage(),
+                'info' => "Request Exception",
+                'data'    => null,
+            ], 400);
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return response()->json([
