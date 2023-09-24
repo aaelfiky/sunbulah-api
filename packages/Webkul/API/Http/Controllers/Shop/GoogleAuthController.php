@@ -1,11 +1,11 @@
 <?php
 namespace Webkul\API\Http\Controllers\Shop;
 
+use App\Helpers\AuthHelper;
 use Google_Client;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use JWTAuth;
-use JWTFactory;
 use Webkul\API\Http\Resources\Customer\Customer as CustomerResource;
 use Webkul\Customer\Models\Customer;
 use Webkul\Customer\Models\CustomerGroup;
@@ -131,21 +131,12 @@ class GoogleAuthController extends Controller
         $jwtToken = JWTAuth::fromUser($customer);
 
         return response()->json([
-            'token'   => $this->getAuthTokenData($jwtToken),
+            'token'   => AuthHelper::getAuthTokenData($jwtToken),
             'message' => 'Logged in successfully.',
             'data'    => new CustomerResource($customer),
         ], 201);
     } // postLogin
 
-
-    private function getAuthTokenData(string $token): array
-    {
-        return [
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => JWTFactory::getTTL() * 60
-        ];
-    }
 
 
     /**
