@@ -94,7 +94,8 @@ class FacebookAuthController extends Controller
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return response()->json([
-                'message' => $e->getMessage(),
+                'message' => $e,
+                'info' => "Generic Exception",
                 'data'    => null,
             ], 400);
         }
