@@ -1,20 +1,19 @@
 <?php
 namespace Webkul\API\Http\Controllers\Shop;
 
+use App\Helpers\AuthHelper;
+use Exception;
 use GuzzleHttp\Exception\ClientException;
-use Illuminate\Http\JsonResponse;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use JWTAuth;
-use JWTFactory;
+use Laravel\Socialite\Facades\Socialite;
 use Webkul\API\Http\Resources\Customer\Customer as CustomerResource;
 use Webkul\Customer\Models\Customer;
 use Webkul\Customer\Models\CustomerGroup;
 use Webkul\SocialLogin\Models\CustomerSocialAccount;
-use Exception;
-use Illuminate\Support\Facades\Auth;
-use Laravel\Socialite\Facades\Socialite;
-use Illuminate\Support\Facades\Log;
-use GuzzleHttp\Exception\RequestException;
 /**
  * Facebook Controller
  *
@@ -33,35 +32,55 @@ class FacebookAuthController extends Controller
     {
         try {
         
-            logger([
-                "info" => "here"
-            ]);
-            $facebook_user = Socialite::driver('facebook')->user();
-         
-            logger([
-                "facebook" => $facebook_user
+            $response = Http::get("https://graph.facebook.com/v18.0/oauth/access_token", [
+                "client_id" => config('services.facebook.client_id'),
+                "redirect_uri" => config('services.facebook.redirect'),
+                "client_secret" => config('services.facebook.client_secret'),
+                "code" => $request->get('code')
             ]);
 
+            $accessToken = $response->json()["access_token"];
+
+            $fields = 'id,name,email'; // Specify the fields you want to retrieve
+
+            $user_response = Http::get("https://graph.facebook.com/v12.0/me", [
+                "fields" => $fields,
+                "access_token" => $accessToken
+            ]);
+
+
+            if ($user_response->status() == 200) {
+                logger([
+                    "info" => "Success User",
+                    "user" => $user_response->json()
+                ]);
+            }
+
+            $userData = $user_response->json();
+
+            // Access the user data
+            $userID = $userData['id'];
+            $userName = $userData['name'];
+            $userEmail = $userData['email'];
+
+            // Use the user data as needed
             $customer = Customer::where('provider_name', '=', 'facebook')
-                ->where('provider_id', '=', $facebook_user->id)
+                ->where('provider_id', '=', $userID)
                 ->first();
 
-            /**
-             */
             if (!$customer) {
                 $customer = Customer::create([
-                        'provider_id' => $facebook_user->id,
+                        'provider_id' => $userID,
                         'provider_name' => 'facebook',
                         'customer_group_id' => CustomerGroup::GENERAL,
-                        'first_name' => $facebook_user->name,
-                        'email' => $facebook_user->email
-                        //'avatar' => $providerUser->picture, // in case you have an avatar and want to use google's
+                        'first_name' => $userName,
+                        'email' => $userEmail
                     ]);
                 
                 $social_account = CustomerSocialAccount::create([
                         'customer_id'   => $customer->id,
-                        'provider_id'   => $facebook_user->id,
-                        'provider_name' => "google"
+                        'provider_id'   => $userID,
+                        'provider_name' => "facebook"
                     ]);
             }
 
@@ -71,7 +90,7 @@ class FacebookAuthController extends Controller
             $jwtToken = JWTAuth::fromUser($customer);
 
             return response()->json([
-                'token'   => $this->getAuthTokenData($jwtToken),
+                'token'   => AuthHelper::getAuthTokenData($jwtToken),
                 'message' => 'Logged in with facebook successfully.',
                 'data'    => new CustomerResource($customer),
             ], 201);
@@ -100,4 +119,5 @@ class FacebookAuthController extends Controller
             ], 400);
         }
     }
+
 }
