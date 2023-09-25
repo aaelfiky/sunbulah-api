@@ -14,6 +14,7 @@ use Webkul\Customer\Models\UserRecipe;
 use Webkul\Product\Models\Product;
 use Webkul\Product\Models\ProductAttributeValue;
 use Webkul\Product\Models\ProductFlat;
+use Webkul\Product\Models\ProductImageProxy;
 use Webkul\Product\Models\ProductInventory;
 
 class StrapiConnector {
@@ -129,6 +130,13 @@ class StrapiConnector {
                 "locale"=> $strapi_product["locale"],
                 "thumbnail" => count($strapi_product["desktop_images"]) > 0 ? $strapi_product["desktop_images"][0]["url"] : null
             ]);
+
+            foreach ($strapi_product["desktop_images"] as $image) {
+                ProductImageProxy::updateOrCreate([
+                    "product_id" => $product->id,
+                    "path" => $image["url"]
+                ], ["type" => "png"]);
+            }
         }
     }
 
