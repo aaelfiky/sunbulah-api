@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Webkul\Attribute\Models\Attribute;
 use Webkul\Category\Models\Category;
+use Webkul\Category\Models\CategoryTranslation;
 use Webkul\Customer\Models\Customer;
 use Webkul\Customer\Models\CustomerGroup;
 use Webkul\Customer\Models\UserProduct;
@@ -55,6 +56,15 @@ class StrapiConnector {
             "position" => 1,
             "status" => 1,
             "display_mode" => "products_and_description"
+        ]);
+
+        CategoryTranslation::updateOrCreate([
+            "category_id" => $category->id,
+            "locale" => $strapi_category["locale"]
+        ],[
+            "name" => $strapi_category["name"],
+            "description" => $strapi_category["description"],
+            "slug" => $strapi_category["slug"]
         ]);
 
         foreach ($strapi_category["products"] as $strapi_product) {
@@ -118,7 +128,10 @@ class StrapiConnector {
                 $productInventory->save();
             }
 
-            $productFlat = ProductFlat::updateOrCreate(["product_id" => $product->id],
+            $productFlat = ProductFlat::updateOrCreate([
+                "product_id" => $product->id,
+                "locale"=> $strapi_product["locale"]
+            ],
             [
                 'sku' => $product->sku,
                 'name' => $strapi_product["name"],
@@ -127,7 +140,6 @@ class StrapiConnector {
                 'status' => 1,
                 "channel" => "default",
                 "visible_individually" => 1,
-                "locale"=> $strapi_product["locale"],
                 "thumbnail" => count($strapi_product["desktop_images"]) > 0 ? $strapi_product["desktop_images"][0]["url"] : null
             ]);
 

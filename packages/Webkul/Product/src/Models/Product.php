@@ -37,6 +37,11 @@ class Product extends Model implements ProductContract
         'additional' => 'array'
     ];
 
+    protected $appends = [
+        'weight_label',
+        'stock'
+    ];
+
     /**
      * The type of product.
      *
@@ -196,6 +201,18 @@ class Product extends Model implements ProductContract
         $image = $this->images()->first();
 
         return $image ? $image->url : null;
+    }
+
+    public function getWeightLabelAttribute()
+    {
+        $product_flat = $this->product_flats()->firstWhere('locale', core()->getRequestedLocaleCode());
+
+        return $product_flat ? $product_flat->weight_label : null;
+    }
+
+    public function getStockAttribute()
+    {
+        return $this->inventories()->sum('qty');
     }
 
     /**

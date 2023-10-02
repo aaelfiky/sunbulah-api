@@ -6,6 +6,7 @@ use Illuminate\Container\Container as App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Webkul\Admin\Traits\Mails;
 use Webkul\Core\Eloquent\Repository;
 use Webkul\Sales\Contracts\Order;
 use Webkul\Sales\Generators\OrderSequencer;
@@ -13,6 +14,8 @@ use Webkul\Sales\Models\Order as OrderModel;
 
 class OrderRepository extends Repository
 {
+
+    use Mails;
     /**
      * Order item repository instance.
      *
@@ -325,6 +328,9 @@ class OrderRepository extends Repository
 
         $order->status = $status;
         $order->save();
+
+        // Send Order Update Status email
+        $this->sendOrderUpdateMail($order);
     }
 
     /**

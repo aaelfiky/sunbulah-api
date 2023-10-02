@@ -12,6 +12,7 @@ use Webkul\Admin\Mail\NewShipmentNotification;
 use Webkul\Admin\Mail\OrderCommentNotification;
 use Webkul\Admin\Mail\CancelOrderAdminNotification;
 use Webkul\Admin\Mail\NewInventorySourceNotification;
+use Webkul\Admin\Mail\OrderStatusUpdate;
 
 trait Mails
 {
@@ -36,6 +37,21 @@ trait Mails
             $configKey = 'emails.general.notifications.emails.general.notifications.new-admin';
             if (core()->getConfigData($configKey)) {
                 $this->prepareMail(config('app.locale'), new NewAdminNotification($order));
+            }
+        } catch (\Exception $e) {
+            report($e);
+        }
+    }
+
+    public function sendOrderUpdateMail($order)
+    {
+        $customerLocale = $this->getLocale($order);
+
+        try {
+            /* email to customer */
+            $configKey = 'emails.general.notifications.emails.general.notifications.new-order';
+            if (core()->getConfigData($configKey)) {
+                $this->prepareMail($customerLocale, new OrderStatusUpdate($order));
             }
         } catch (\Exception $e) {
             report($e);
