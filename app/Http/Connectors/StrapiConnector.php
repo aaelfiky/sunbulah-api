@@ -203,4 +203,21 @@ class StrapiConnector {
         }
         
     }
+
+    public static function getFavoriteRecipes($query): array
+    {
+        ini_set('max_execution_time', 180); //3 minutes
+
+        $base_url = env('STRAPI_URL');
+
+        Log::info("Started: Fetching Favorite Recipes");
+
+        $endpoint = "/recipes";
+
+        $response = Http::get($base_url . $endpoint, $query);
+
+        $results = $response->json();
+
+        return $results;
+    }
 }

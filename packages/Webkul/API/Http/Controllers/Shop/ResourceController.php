@@ -115,4 +115,8 @@ class ResourceController extends Controller
             'message' => 'Item removed successfully.',
         ]);
     }
+
+    public function getOrder() {
+        
+    }
 }

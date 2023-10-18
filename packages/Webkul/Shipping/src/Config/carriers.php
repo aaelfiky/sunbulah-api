@@ -20,5 +20,15 @@ return [
         'is_calculate_tax' => true,
         'default_rate'     => '0',
         'class'            => 'Webkul\Shipping\Carriers\Free',
-    ]
+    ],
+
+    'aramex' => [
+        'code'         => 'aramex',
+        'title'        => 'Aramex',
+        'description'  => 'Aramex',
+        'active'       => true,
+        'default_rate' => '20',
+        'type'         => 'per_unit',
+        'class'        => 'Webkul\Shipping\Carriers\Aramex',
+    ],
 ];

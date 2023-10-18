@@ -1,4 +1,7 @@
 <?php
+use Illuminate\Support\Facades\Mail;
+use Webkul\Admin\Mail\OrderReceipt;
+use Webkul\Sales\Models\Order;
 
 Route::group(['prefix' => 'api'], function ($router) {
 
@@ -172,6 +175,14 @@ Route::group(['prefix' => 'api'], function ($router) {
 
         Route::post('customer/validate-qr', 'CustomerController@verifyQRCode');
 
+        Route::put('/favorite-products/{id}', 'CustomerController@favoriteProduct');
+
+        Route::put('/favorite-recipes/{id}', 'CustomerController@favoriteRecipe');
+
+        Route::get('/favorite-products', 'CustomerController@getFavoriteProducts');
+        
+        Route::get('/favorite-recipes', 'CustomerController@getFavoriteRecipes');
+
         Route::get('customers/{id}', 'CustomerController@get')->defaults('_config', [
             'repository' => 'Webkul\Customer\Repositories\CustomerRepository',
             'resource' => 'Webkul\API\Http\Resources\Customer\Customer',
@@ -217,6 +228,13 @@ Route::group(['prefix' => 'api'], function ($router) {
             'resource' => 'Webkul\API\Http\Resources\Sales\Order',
             'authorization_required' => true
         ]);
+
+        Route::get('order-email', function(){
+            $order = Order::find(1);
+            if (!is_null($order)) {
+                Mail::to($order->customer_email)->send(new OrderReceipt($order));
+            }
+         });
 
 
         //Invoice routes

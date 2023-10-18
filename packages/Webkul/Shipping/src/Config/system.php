@@ -45,6 +45,33 @@ return [
             ]
         ]
     ], [
+        'key'    => 'sales.carriers.aramex',
+        'name'   => 'Aramex',
+        'sort'   => 1,
+        'fields' => [
+            [
+                'name'          => 'title',
+                'title'         => 'admin::app.admin.system.title',
+                'type'          => 'text',
+                'validation'    => 'required',
+                'channel_based' => false,
+                'locale_based'  => false,
+            ], [
+                'name'          => 'description',
+                'title'         => 'admin::app.admin.system.description',
+                'type'          => 'textarea',
+                'channel_based' => false,
+                'locale_based'  => false,
+            ], [
+                'name'          => 'active',
+                'title'         => 'admin::app.admin.system.status',
+                'type'          => 'boolean',
+                'validation'    => 'required',
+                'channel_based' => false,
+                'locale_based'  => true,
+            ]
+        ]
+    ], [
         'key'    => 'sales.carriers.flatrate',
         'name'   => 'admin::app.admin.system.flate-rate-shipping',
         'sort'   => 2,

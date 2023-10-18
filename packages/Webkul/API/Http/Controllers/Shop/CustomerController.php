@@ -2,6 +2,7 @@
 
 namespace Webkul\API\Http\Controllers\Shop;
 
+use App\Http\Connectors\StrapiConnector;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
@@ -11,6 +12,8 @@ use Illuminate\Support\Str;
 use Webkul\Customer\Http\Requests\CustomerRegistrationRequest;
 use Webkul\Customer\Mail\VerificationEmail;
 use Webkul\Customer\Models\CustomerGroup;
+use Webkul\Customer\Models\UserProduct;
+use Webkul\Customer\Models\UserRecipe;
 use Webkul\Customer\Repositories\CustomerGroupRepository;
 use Webkul\Customer\Repositories\CustomerRepository;
 
@@ -204,5 +207,77 @@ class CustomerController extends Controller
         return response()->json([
             'message' => 'Invalid Request.',
         ], 403);
+    }
+    public function favoriteProduct($id)
+    {
+        $message = "";
+        $product = UserProduct::firstWhere([
+            "product_id" => $id,
+            "customer_id" => auth()->guard($this->guard)->user()->id
+        ]);
+        if ($product) {
+            $product->delete();
+            $message = "Product removed from favorites successfully";
+        } else {
+            UserProduct::create([
+                "product_id" => $id,
+                "customer_id" => auth()->guard($this->guard)->user()->id
+            ]);
+            $message = "Product added to favorites successfully";
+        }
+
+        return response()->json([
+            "message" => $message
+        ]);
+    }
+
+    public function favoriteRecipe($id)
+    {
+        $message = "";
+        $product = UserRecipe::firstWhere([
+            "recipe_id" => $id,
+            "customer_id" => auth()->guard($this->guard)->user()->id
+        ]);
+        if ($product) {
+            $product->delete();
+            $message = "Recipe removed from favorites successfully";
+        } else {
+            UserRecipe::create([
+                "recipe_id" => $id,
+                "customer_id" => auth()->guard($this->guard)->user()->id
+            ]);
+            $message = "Recipe added to favorites successfully";
+        }
+
+        return response()->json([
+            "message" => $message
+        ]);
+    }
+
+    public function getFavoriteRecipes(Request $request)
+    {
+        $recipe_ids = UserRecipe::where("customer_id", auth()->guard($this->guard)->user()->id)->get()->pluck('recipe_id')->toArray();
+        $query = count($recipe_ids) > 0 ? "id_in=" . implode("&id_in=", $recipe_ids) : "";
+        $results = count($recipe_ids) == 0 ? [] : StrapiConnector::getFavoriteRecipes($query);
+
+        return response()->json([
+            "message" => "Favorite Recipes fetched successfully",
+            "data" => $results
+        ]);
+    }
+
+    public function getFavoriteProducts(Request $request)
+    {
+        $products = UserProduct::with("product")->where("customer_id", auth()->guard($this->guard)->user()->id)->get();
+        $results = [];
+
+        foreach ($products as $product) {
+            array_push($results, $product->product);
+        }
+        
+        return response()->json([
+            "message" => "Favorite products fetched successfully",
+            "data" => $results
+        ]);   
     }
 }

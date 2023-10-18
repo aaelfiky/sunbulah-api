@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f6373a1939c4287801e7f6f2e3cb2ada",
+    "content-hash": "e8a7f1f93d37adab73c1f9d646375c2d",
     "packages": [
         {
             "name": "algolia/algoliasearch-client-php",
@@ -424,6 +424,47 @@
             "description": "BaconQrCode is a QR code generator for PHP.",
             "homepage": "https://github.com/Bacon/BaconQrCode",
             "time": "2022-12-07T17:46:57+00:00"
+        },
+        {
+            "name": "bagisto/bagisto-package-generator",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/bagisto/bagisto-package-generator.git",
+                "reference": "73173cf8a517b8722fd9aa24c61013d9a837b5e5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/bagisto/bagisto-package-generator/zipball/73173cf8a517b8722fd9aa24c61013d9a837b5e5",
+                "reference": "73173cf8a517b8722fd9aa24c61013d9a837b5e5",
+                "shasum": ""
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Webkul\\PackageGenerator\\Providers\\PackageGeneratorServiceProvider"
+                    ],
+                    "aliases": []
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Webkul\\PackageGenerator\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jitendra Singh",
+                    "email": "jitendra@webkul.com"
+                }
+            ],
+            "description": "Bagisto Package Generator",
+            "time": "2021-03-22T06:30:08+00:00"
         },
         {
             "name": "bagisto/graphql-api",
@@ -5254,6 +5295,59 @@
                 }
             ],
             "time": "2022-07-08T08:50:28+00:00"
+        },
+        {
+            "name": "octw/aramex",
+            "version": "1.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Moustafa22/Laravel-Aramex-SDK.git",
+                "reference": "32870964bd6d9e0282cddf9bf2dc3883041d2084"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Moustafa22/Laravel-Aramex-SDK/zipball/32870964bd6d9e0282cddf9bf2dc3883041d2084",
+                "reference": "32870964bd6d9e0282cddf9bf2dc3883041d2084",
+                "shasum": ""
+            },
+            "type": "package",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Octw\\Aramex\\AramexServiceProvider"
+                    ],
+                    "aliases": {
+                        "Aramex": "Octw\\Aramex\\Aramex"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Octw\\Aramex\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Moustafa Allahham",
+                    "email": "iteng.moustafa@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A Library to integrate with Aramex APIs",
+            "keywords": [
+                "aramex",
+                "integraton",
+                "laravel",
+                "php",
+                "sdk",
+                "ship",
+                "shipping"
+            ],
+            "time": "2021-09-18T15:06:21+00:00"
         },
         {
             "name": "opis/closure",
@@ -12756,6 +12850,7 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
+        "bagisto/bagisto-package-generator": 20,
         "tymon/jwt-auth": 20
     },
     "prefer-stable": true,

@@ -2,6 +2,7 @@
 
 namespace Webkul\API\Http\Controllers\Shop;
 
+use Aramex;
 use Cart;
 use Exception;
 use Illuminate\Support\Str;
@@ -76,6 +77,11 @@ class CheckoutController extends Controller
     public function saveAddress(CustomerAddressForm $request)
     {
         $data = request()->all();
+
+        if ($data['billing']['use_for_shipping']) {
+            $data['shipping'] = $data["billing"];
+            unset($data["shipping"]['use_for_shipping']);
+        }
 
         $data['billing']['address1'] = implode(PHP_EOL, array_filter($data['billing']['address1']));
 
@@ -203,6 +209,96 @@ class CheckoutController extends Controller
                     'success'      => true,
                     'redirect_url' => $redirectUrl,
                 ]);
+        }
+
+
+        if ($cart->shipping_method == "aramex_aramex") {
+            $guid = 0;
+            $totalWeight = 0;
+
+            /*
+            TODO:: ARAMEX SHIPPING
+            foreach ($cart->items as $item) {
+                if ($item->product->getTypeInstance()->isStockable()) {
+                    $totalWeight += $item->total_weight;
+                }
+            }
+
+            $data = Aramex::createPickup([
+                'name' => $cart->customer_first_name . $cart->customer_last_name,
+                'email' => $cart->customer_email,
+                'phone'      => optional($cart->customer)->phone ?? "0000000000",
+                'cell_phone' =>  optional($cart->customer)->phone ?? "0000000000",
+                'country_code' => 'EG',
+                'city' => $cart->shipping_address->city,
+                'zip_code' => 32160,
+                'line1' => $cart->shipping_address->address1,
+                'line2' => $cart->shipping_address->city,
+                'line3' => $cart->shipping_address->country,
+                'pickup_date' => time() + 45000,
+                'ready_time' => time()  + 43000,
+                'last_pickup_time' => time() +  45000,
+                'closing_time' => time()  + 45000,
+                'status' => 'Ready', 
+                'pickup_location' => $cart->shipping_address->address1,
+                'weight' => $totalWeight,
+                'volume' => 1
+            ]);
+    
+            // extracting GUID
+           if (!$data->error)
+              $guid = $data->pickupGUID;
+
+            $callResponse = Aramex::createShipment([
+                'shipper' => [
+                    'name' => 'Sunbulah',
+                    'email' => 'sales@sunbulah.com',
+                    'phone'      => '+123456789982',
+                    'cell_phone' => '+321654987789',
+                    'country_code' => 'SA',
+                    'city' => 'Jeddah',
+                    'zip_code' => 22752,
+                    'line1' => 'Industrial City',
+                    'line2' => 'Jeddah',
+                    'line3' => 'KSA'
+                ],
+                'consignee' => [
+                    'name' => $cart->customer_first_name . $cart->customer_last_name,
+                    'email' => $cart->customer_email,
+                    'phone'      => optional($cart->customer)->phone ?? "0000000000",
+                    'cell_phone' =>  optional($cart->customer)->phone ?? "0000000000",
+                    'country_code' => 'EG',
+                    'city' => $cart->shipping_address->city,
+                    'zip_code' => 32160,
+                    'line1' => $cart->shipping_address->address1,
+                    'line2' => $cart->shipping_address->city,
+                    'line3' => $cart->shipping_address->country,
+                ],
+                'shipping_date_time' => time() + 50000,
+                'due_date' => time() + 60000,
+                'comments' => 'No Comment',
+                'pickup_location' => $cart->shipping_address->address1,
+                'pickup_guid' => $guid,
+                'product_type' => 'EPX',
+                'customs_value_amount' => 10,
+                'weight' => $totalWeight,
+                'customs_value' => 20,
+                'number_of_pieces' => $cart->items_qty,
+                'description' => 'Sunbulah Shipping',
+            ]);
+
+            if (!empty($callResponse->error))
+            {
+                foreach ($callResponse->errors as $errorObject) {
+                  handleError($errorObject->Code, $errorObject->Message);
+                }
+            }
+            else {
+              // extract your data here, for example
+              // $shipmentId = $response->Shipments->ProcessedShipment->ID;
+              // $labelUrl = $response->Shipments->ProcessedShipment->ShipmentLabel->LabelURL;
+            }
+            */
         }
 
         $order = $this->orderRepository->create(Cart::prepareDataForOrder());

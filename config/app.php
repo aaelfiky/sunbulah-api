@@ -357,5 +357,8 @@ return [
         'ProductImage' => Webkul\Product\Facades\ProductImage::class,
         'ProductGrid' => Webkul\Ui\DataGrid\Facades\ProductGrid::class,
         'ProductVideo' => Webkul\Product\Facades\ProductVideo::class,
+
+        // CUSTOM
+        'Aramex' => Octw\Aramex\Aramex::class,
     ],
 ];

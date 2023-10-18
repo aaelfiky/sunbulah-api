@@ -2,6 +2,7 @@
 
 namespace Webkul\Shop\Http\Controllers;
 
+use Aramex;
 use Illuminate\Support\Facades\Event;
 use Webkul\Shop\Http\Controllers\Controller;
 use Webkul\Checkout\Facades\Cart;
@@ -203,6 +204,55 @@ class OnepageController extends Controller
         }
 
         $order = $this->orderRepository->create(Cart::prepareDataForOrder());
+
+        if ($order->shipping_method == 'aramex_aramex') {
+            // Create Shipment
+            $callResponse = Aramex::createShipment([
+                'shipper' => [
+                    'name' => 'Steve',
+                    'email' => 'email@users.companies',
+                    'phone'      => '+123456789982',
+                    'cell_phone' => '+321654987789',
+                    'country_code' => 'US',
+                    'city' => 'New York',
+                    'zip_code' => 32160,
+                    'line1' => 'Line1 Details',
+                    'line2' => 'Line2 Details',
+                    'line3' => 'Line3 Details',
+                ],
+                'consignee' => [
+                    'name' => 'Steve',
+                    'email' => 'email@users.companies',
+                    'phone'      => '+123456789982',
+                    'cell_phone' => '+321654987789',
+                    'country_code' => 'US',
+                    'city' => 'New York',
+                    'zip_code' => 32160,
+                    'line1' => 'Line1 Details',
+                    'line2' => 'Line2 Details',
+                    'line3' => 'Line3 Details',
+                ],
+                'shipping_date_time' => time() + 50000,
+                'due_date' => time() + 60000,
+                'comments' => 'No Comment',
+                'pickup_location' => 'at reception',
+                // 'pickup_guid' => $guid,
+                'weight' => 1,
+                'number_of_pieces' => 1,
+                'description' => 'Goods Description, like Boxes of flowers',
+            ]);
+            if (!empty($callResponse->error))
+            {
+                foreach ($callResponse->errors as $errorObject) {
+                  handleError($errorObject->Code, $errorObject->Message);
+                }
+            }
+            else {
+              // extract your data here, for example
+              // $shipmentId = $response->Shipments->ProcessedShipment->ID;
+              // $labelUrl = $response->Shipments->ProcessedShipment->ShipmentLabel->LabelURL;
+            }
+        }
 
         Cart::deActivateCart();
 

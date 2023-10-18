@@ -2,9 +2,12 @@
 
 namespace Webkul\Customer\Http\Controllers;
 
+use App\Http\Connectors\StrapiConnector;
 use Hash;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
+use Webkul\Customer\Models\UserProduct;
+use Webkul\Customer\Models\UserRecipe;
 use Webkul\Shop\Mail\SubscriptionEmail;
 use Webkul\Customer\Repositories\CustomerRepository;
 use Webkul\Product\Repositories\ProductReviewRepository;
