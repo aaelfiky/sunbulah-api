@@ -16,6 +16,11 @@ Route::group(['prefix' => 'api'], function ($router) {
         Route::get('facebook/redirect', 'FacebookAuthController@redirectFacebook');
         Route::get('facebook/callback', 'FacebookAuthController@facebookCallback');
     });
+
+    Route::group(['namespace' => 'Webkul\Support\Http\Controllers\API'], function ($router) {
+        Route::get('orders-tickets/{id}', 'SupportController@getByOrderId');
+        Route::post('orders-tickets/{id}', 'SupportController@updateByOrderId');
+    });
     // END SOCIAL AUTH
 
     Route::group(['namespace' => 'Webkul\API\Http\Controllers\Shop', 'middleware' => ['locale', 'theme', 'currency']], function ($router) {

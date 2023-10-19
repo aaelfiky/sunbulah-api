@@ -5,6 +5,7 @@ namespace Webkul\Sales\Models;
 use Webkul\Checkout\Models\CartProxy;
 use Illuminate\Database\Eloquent\Model;
 use Webkul\Sales\Contracts\Order as OrderContract;
+use Webkul\Support\Models\Ticket;
 
 class Order extends Model implements OrderContract
 {
@@ -36,6 +37,10 @@ class Order extends Model implements OrderContract
         self::STATUS_CANCELED        => 'Canceled',
         self::STATUS_CLOSED          => 'Closed',
         self::STATUS_FRAUD           => 'Fraud',
+    ];
+
+    protected $with = [
+        'tickets'
     ];
 
     /**
@@ -92,6 +97,12 @@ class Order extends Model implements OrderContract
     public function comments()
     {
         return $this->hasMany(OrderCommentProxy::modelClass());
+    }
+
+
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class, 'order_id');
     }
 
     /**
