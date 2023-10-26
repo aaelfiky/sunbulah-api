@@ -96,8 +96,8 @@ class FacebookAuthController extends Controller
             // ], 201);
 
             $shop_url = "https://" . env('SHOP_BASE_URL');
-            
-            return redirect()->away("$shop_url?token=$jwtToken");
+
+            return redirect()->away("$shop_url?access_token=$jwtToken");
         
         } catch (ClientException $e) {
             // Caught a Guzzle ClientException
