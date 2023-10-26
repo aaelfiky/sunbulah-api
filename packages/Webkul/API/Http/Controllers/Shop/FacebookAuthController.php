@@ -89,11 +89,15 @@ class FacebookAuthController extends Controller
 
             $jwtToken = JWTAuth::fromUser($customer);
 
-            return response()->json([
-                'token'   => AuthHelper::getAuthTokenData($jwtToken),
-                'message' => 'Logged in with facebook successfully.',
-                'data'    => new CustomerResource($customer),
-            ], 201);
+            // return response()->json([
+            //     'token'   => AuthHelper::getAuthTokenData($jwtToken),
+            //     'message' => 'Logged in with facebook successfully.',
+            //     'data'    => new CustomerResource($customer),
+            // ], 201);
+
+            $shop_url = "https://" . env('SHOP_BASE_URL');
+            
+            return redirect()->away("$shop_url?token=$jwtToken");
         
         } catch (ClientException $e) {
             // Caught a Guzzle ClientException
