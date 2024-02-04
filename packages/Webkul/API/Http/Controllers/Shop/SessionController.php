@@ -5,6 +5,8 @@ namespace Webkul\API\Http\Controllers\Shop;
 use Illuminate\Support\Facades\Event;
 use Webkul\API\Http\Resources\Customer\Customer as CustomerResource;
 use Illuminate\Support\Facades\Mail;
+use Webkul\API\Http\Services\CustomerService;
+use Webkul\Customer\Models\Customer;
 use Webkul\Customer\Http\Requests\CustomerLoginRequest;
 use Webkul\Customer\Mail\VerificationEmail;
 use Webkul\Customer\Repositories\CustomerRepository;
@@ -25,12 +27,14 @@ class SessionController extends Controller
      */
     protected $_config;
 
+    protected $customerService;
+
     /**
      * Controller instance
      *
      * @param  \Webkul\Customer\Repositories\CustomerRepository  $customerRepository
      */
-    public function __construct(CustomerRepository $customerRepository)
+    public function __construct(CustomerRepository $customerRepository, CustomerService $customerService)
     {
         $this->guard = request()->has('token') ? 'api' : 'customer';
 
@@ -41,6 +45,8 @@ class SessionController extends Controller
         $this->_config = request('_config');
 
         $this->customerRepository = $customerRepository;
+
+        $this->customerService = $customerService;
     }
 
     /**
@@ -54,7 +60,7 @@ class SessionController extends Controller
 
         $jwtToken = null;
 
-        if (! $jwtToken = auth()->guard($this->guard)->attempt($request->only(['email', 'password']))) {
+        if (!$jwtToken = auth()->guard($this->guard)->attempt($request->only(['email', 'password']))) {
             return response()->json([
                 'error' => 'Invalid Email or Password',
             ], 401);
@@ -78,16 +84,16 @@ class SessionController extends Controller
                 return response()->json([
                     'message' => 'Your email is not verified yet.',
                     'is_verified' => false,
-                    'data'    => new CustomerResource($customer)
-                ]);    
+                    'data' => new CustomerResource($customer)
+                ]);
             }
         }
 
         return response()->json([
-            'token'              => $jwtToken,
-            'message'            => 'Logged in successfully.',
-            'is_verified'        => true,
-            'data'               => new CustomerResource($customer),
+            'token' => $jwtToken,
+            'message' => 'Logged in successfully.',
+            'is_verified' => true,
+            'data' => new CustomerResource($customer),
             'two_factor_enabled' => core()->getConfigData('customer.settings.two_factor_authentication.verification') ? true : false
         ]);
     }
@@ -116,17 +122,17 @@ class SessionController extends Controller
         $customer = auth($this->guard)->user();
 
         $this->validate(request(), [
-            'first_name'    => 'required',
-            'last_name'     => 'required',
-            'gender'        => 'required',
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'gender' => 'required',
             'date_of_birth' => 'nullable|date|before:today',
-            'email'         => 'email|unique:customers,email,' . $customer->id,
-            'password'      => 'confirmed|min:6',
+            'email' => 'email|unique:customers,email,' . $customer->id,
+            'password' => 'confirmed|min:6',
         ]);
 
         $data = request()->only('first_name', 'last_name', 'gender', 'date_of_birth', 'email', 'password');
 
-        if (! isset($data['password']) || ! $data['password']) {
+        if (!isset($data['password']) || !$data['password']) {
             unset($data['password']);
         } else {
             $data['password'] = bcrypt($data['password']);
@@ -136,7 +142,7 @@ class SessionController extends Controller
 
         return response()->json([
             'message' => 'Your account has been updated successfully.',
-            'data'    => new CustomerResource($updatedCustomer),
+            'data' => new CustomerResource($updatedCustomer),
         ]);
     }
 

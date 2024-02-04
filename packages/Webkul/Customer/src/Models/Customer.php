@@ -40,6 +40,7 @@ class Customer extends Authenticatable implements CustomerContract, JWTSubject
     ];
 
     protected $hidden = ['password', 'api_token', 'remember_token'];
+    protected $with = ['products', 'recipes'];
 
     /**
      * Get the customer full name.
@@ -179,7 +180,7 @@ class Customer extends Authenticatable implements CustomerContract, JWTSubject
      */
     public function recipes()
     {
-        return $this->hasMany(UserRecipe::class, 'customer_id', 'user_recipes');
+        return $this->hasMany(UserRecipe::class, 'customer_id');
     }
 
     /**
@@ -187,6 +188,6 @@ class Customer extends Authenticatable implements CustomerContract, JWTSubject
      */
     public function products()
     {
-        return $this->hasMany(UserProduct::class, 'customer_id', 'user_products');
+        return $this->hasMany(UserProduct::class, 'customer_id');
     }
 }

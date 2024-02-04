@@ -43,10 +43,6 @@ return [
             'driver' => 'eloquent',
             'model' => Webkul\User\Models\Admin::class,
         ]
-        // 'admins' => [
-        //     'driver'    => 'eloquent',
-        //     'model'     => Webkul\GraphQLAPI\Models\User\Admin::class,
-        // ]
     ],
 
     'passwords' => [

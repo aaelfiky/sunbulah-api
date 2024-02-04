@@ -16,6 +16,7 @@ use Webkul\Customer\Models\UserProduct;
 use Webkul\Customer\Models\UserRecipe;
 use Webkul\Customer\Repositories\CustomerGroupRepository;
 use Webkul\Customer\Repositories\CustomerRepository;
+use Webkul\API\Http\Services\CustomerService;
 
 class CustomerController extends Controller
 {
@@ -41,6 +42,13 @@ class CustomerController extends Controller
     protected $customerRepository;
 
     /**
+     * Service object
+     *
+     * @var CustomerService
+     */
+    protected $customerService;
+
+    /**
      * Repository object
      *
      * @var \Webkul\Customer\Repositories\CustomerGroupRepository
@@ -56,8 +64,9 @@ class CustomerController extends Controller
      */
     public function __construct(
         CustomerRepository $customerRepository,
-        CustomerGroupRepository $customerGroupRepository
-    )   {
+        CustomerGroupRepository $customerGroupRepository,
+        CustomerService $customerService
+    ) {
         $this->guard = request()->has('token') ? 'api' : 'customer';
 
         $this->_config = request('_config');
@@ -72,6 +81,8 @@ class CustomerController extends Controller
         $this->customerRepository = $customerRepository;
 
         $this->customerGroupRepository = $customerGroupRepository;
+
+        $this->customerService = $customerService;
     }
 
     /**
@@ -88,13 +99,13 @@ class CustomerController extends Controller
         $verification_token = md5(uniqid(rand(), true));
 
         $data = [
-            'first_name'  => $request->get('first_name'),
-            'last_name'   => $request->get('last_name'),
-            'email'       => $email,
-            'password'    => $request->get('password'),
-            'password'    => bcrypt($request->get('password')),
-            'token'       => $verification_token,
-            'channel_id'  => core()->getCurrentChannel()->id,
+            'first_name' => $request->get('first_name'),
+            'last_name' => $request->get('last_name'),
+            'email' => $email,
+            'password' => $request->get('password'),
+            'password' => bcrypt($request->get('password')),
+            'token' => $verification_token,
+            'channel_id' => core()->getCurrentChannel()->id,
             'is_verified' => core()->getConfigData('customer.settings.email.verification') ? 0 : 1,
             'customer_group_id' => $this->customerGroupRepository->findOneWhere(['code' => 'general'])->id
         ];
@@ -111,9 +122,9 @@ class CustomerController extends Controller
 
         if (core()->getConfigData('customer.settings.email.verification')) {
             Mail::queue(new VerificationEmail(['email' => $email, 'token' => $verification_token]));
-                return response()->json([
-                    'message' => 'Your email is created successfully but is not verified yet.'
-                ]); 
+            return response()->json([
+                'message' => 'Your email is created successfully but is not verified yet.'
+            ]);
         }
 
         return response()->json([
@@ -131,7 +142,7 @@ class CustomerController extends Controller
         $user = auth($this->guard)->user();
 
         $registration_data["email"] = $user->email;
-        
+
         // Add the secret key to the registration data
         $registration_data["google2fa_secret"] = is_null($user->google2fa_secret) ? $google2fa->generateSecretKey() : $user->google2fa_secret;
 
@@ -166,9 +177,9 @@ class CustomerController extends Controller
         $user = auth($this->guard)->user();
         $user_2fa_token = $user->google2fa_secret;
 
-        
+
         $valid = $google2fa->verifyKey($user_2fa_token, $request->get('code'));
-        
+
         if ($valid) {
             if (!$user->two_factor_verified) {
                 $user->two_factor_verified = true;
@@ -185,7 +196,8 @@ class CustomerController extends Controller
     }
 
 
-    private function generateQRCodeUrl(string $email, string $secret) {
+    private function generateQRCodeUrl(string $email, string $secret)
+    {
         $base_url = env('SHOP_BASE_URL');
         return "https://api.qrserver.com/v1/create-qr-code/?size=193x193&data=otpauth://totp/$base_url:$email?secret=$secret&issuer=$base_url&digits=6";
     }
@@ -199,8 +211,14 @@ class CustomerController extends Controller
     public function get($id)
     {
         if (Auth::user($this->guard)->id === (int) $id) {
+            $favoriteProducts = $this->customerService->getFavoriteProducts();
+            $favoriteRecipes = $this->customerService->getFavoriteRecipes();
+            $customer = $this->customerRepository->findOrFail($id);
+            $customer->favorite_products = $favoriteProducts;
+            $customer->favorite_recipes = $favoriteRecipes;
+            
             return new $this->_config['resource'](
-                $this->customerRepository->findOrFail($id)
+                $customer
             );
         }
 
@@ -256,28 +274,21 @@ class CustomerController extends Controller
 
     public function getFavoriteRecipes(Request $request)
     {
-        $recipe_ids = UserRecipe::where("customer_id", auth()->guard($this->guard)->user()->id)->get()->pluck('recipe_id')->toArray();
-        $query = count($recipe_ids) > 0 ? "id_in=" . implode("&id_in=", $recipe_ids) : "";
-        $results = count($recipe_ids) == 0 ? [] : StrapiConnector::getFavoriteRecipes($query);
+        $favorites = $this->customerService->getFavoriteRecipes($request);
 
         return response()->json([
             "message" => "Favorite Recipes fetched successfully",
-            "data" => $results
+            "data" => $favorites
         ]);
     }
 
     public function getFavoriteProducts(Request $request)
     {
-        $products = UserProduct::with("product")->where("customer_id", auth()->guard($this->guard)->user()->id)->get();
-        $results = [];
+        $favorites = $this->customerService->getFavoriteProducts($request);
 
-        foreach ($products as $product) {
-            array_push($results, $product->product);
-        }
-        
         return response()->json([
             "message" => "Favorite products fetched successfully",
-            "data" => $results
-        ]);   
+            "data" => $favorites
+        ]);
     }
 }

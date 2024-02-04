@@ -28,6 +28,8 @@ class Customer extends JsonResource
             'two_factor_verified' => $this->two_factor_verified ? true : false,
             'created_at'          => $this->created_at,
             'updated_at'          => $this->updated_at,
+            'favorite_products'   => $this->products,
+            'favorite_recipes'    => $this->recipes
         ];
     }
 }
