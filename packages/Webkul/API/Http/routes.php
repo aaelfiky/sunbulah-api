@@ -174,6 +174,8 @@ Route::group(['prefix' => 'api'], function ($router) {
 
         Route::put('customer/profile', 'SessionController@update');
 
+        Route::delete('customer', 'CustomerController@delete');
+
         Route::post('customer/register', 'CustomerController@create');
 
         Route::get('customer/generate-qr', 'CustomerController@generateQRCode');

@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use Webkul\Customer\Http\Requests\CustomerRegistrationRequest;
 use Webkul\Customer\Mail\VerificationEmail;
 use Webkul\Customer\Models\CustomerGroup;
+use Webkul\Customer\Models\Customer;
 use Webkul\Customer\Models\UserProduct;
 use Webkul\Customer\Models\UserRecipe;
 use Webkul\Customer\Repositories\CustomerGroupRepository;
@@ -216,7 +217,7 @@ class CustomerController extends Controller
             $customer = $this->customerRepository->findOrFail($id);
             $customer->favorite_products = $favoriteProducts;
             $customer->favorite_recipes = $favoriteRecipes;
-            
+
             return new $this->_config['resource'](
                 $customer
             );
@@ -290,5 +291,32 @@ class CustomerController extends Controller
             "message" => "Favorite products fetched successfully",
             "data" => $favorites
         ]);
+    }
+
+
+    public function delete(Request $request)
+    {
+        try {
+            $customer = Customer::findOrFail(auth()->guard($this->guard)->user()->id);
+            $customer->delete();
+
+            // TODO: Delete all user related entries
+
+            return response()->json([
+                "message" => "Customer deleted successfully",
+                "data" => true
+            ]);
+        } catch (\Exception $exception) {
+            logger(
+                "failed to delete customer",
+                [
+                    "error" => $exception->getMessage()
+                ]
+            );
+            return response()->json([
+                "message" => $exception->getMessage(),
+                "data" => false
+            ]);
+        }
     }
 }

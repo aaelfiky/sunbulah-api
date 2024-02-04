@@ -4,6 +4,7 @@ namespace Webkul\Customer\Models;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Webkul\Checkout\Models\CartProxy;
 use Webkul\Sales\Models\OrderProxy;
@@ -15,6 +16,8 @@ use Webkul\Customer\Contracts\Customer as CustomerContract;
 class Customer extends Authenticatable implements CustomerContract, JWTSubject
 {
     use Notifiable;
+
+    use SoftDeletes;
 
     protected $table = 'customers';
 

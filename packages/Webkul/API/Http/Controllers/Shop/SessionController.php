@@ -3,10 +3,13 @@
 namespace Webkul\API\Http\Controllers\Shop;
 
 use Illuminate\Support\Facades\Event;
+use Response;
 use Webkul\API\Http\Resources\Customer\Customer as CustomerResource;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 use Webkul\API\Http\Services\CustomerService;
 use Webkul\Customer\Models\Customer;
+use Illuminate\Http\Response as HTTPResponse;
 use Webkul\Customer\Http\Requests\CustomerLoginRequest;
 use Webkul\Customer\Mail\VerificationEmail;
 use Webkul\Customer\Repositories\CustomerRepository;
@@ -121,16 +124,25 @@ class SessionController extends Controller
     {
         $customer = auth($this->guard)->user();
 
-        $this->validate(request(), [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'gender' => 'required',
+        $validator = Validator::make(request()->all(), [
+            'first_name' => 'required_if:password,null',
+            'last_name' => 'required_if:password,null',
             'date_of_birth' => 'nullable|date|before:today',
             'email' => 'email|unique:customers,email,' . $customer->id,
-            'password' => 'confirmed|min:6',
+            'password' => 'nullable|confirmed|min:6'
         ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Your account has failed to update',
+                'data' => false,
+            ], HTTPResponse::HTTP_BAD_REQUEST);
+        }
 
-        $data = request()->only('first_name', 'last_name', 'gender', 'date_of_birth', 'email', 'password');
+        $data = request()->only('first_name', 'last_name', 'gender', 'date_of_birth', 'email', 'password', 'phone');
+
+        // Only get non-empty values
+        $data = array_filter($data);
 
         if (!isset($data['password']) || !$data['password']) {
             unset($data['password']);
