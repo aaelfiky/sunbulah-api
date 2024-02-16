@@ -3,6 +3,7 @@
 namespace Webkul\API\Http\Controllers\Shop;
 
 use App\Http\Connectors\StrapiConnector;
+use App\Http\Connectors\XMLConnector;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
@@ -14,6 +15,7 @@ use Webkul\Customer\Mail\VerificationEmail;
 use Webkul\Customer\Models\CustomerGroup;
 use Webkul\Customer\Models\Customer;
 use Webkul\Customer\Models\UserProduct;
+use Webkul\Customer\Models\Wishlist;
 use Webkul\Customer\Models\UserRecipe;
 use Webkul\Customer\Repositories\CustomerGroupRepository;
 use Webkul\Customer\Repositories\CustomerRepository;
@@ -293,6 +295,13 @@ class CustomerController extends Controller
         ]);
     }
 
+    public function getProducts(Request $request) {
+        XMLConnector::syncProducts();
+        return response()->json([
+            "message" => "Products Imported Successfully",
+            "data" => true
+        ]);
+    }
 
     public function delete(Request $request)
     {

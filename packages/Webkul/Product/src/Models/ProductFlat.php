@@ -18,7 +18,7 @@ class ProductFlat extends Model implements ProductFlatContract
         'updated_at',
     ];
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     /**
      * Get the index name for the model.

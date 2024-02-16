@@ -7,11 +7,8 @@ Route::group(['prefix' => 'api'], function ($router) {
 
     // SOCIAL AUTH
     Route::group(['namespace' => 'Webkul\API\Http\Controllers\Shop'], function ($router) {
-        Route::get('google/login/url', 'GoogleAuthController@getAuthUrl');
-        Route::post('google/auth/login', 'GoogleAuthController@postLogin');
-        Route::middleware(['auth:api'])->group(function () {
-            Route::get('google/drive', 'GoogleAuthController@getDrive');
-        });
+        Route::get('google/auth', 'GoogleAuthController@redirectToAuth');
+        Route::get('google/auth/callback', 'GoogleAuthController@handleAuthCallback');
 
         Route::get('facebook/redirect', 'FacebookAuthController@redirectFacebook');
         Route::get('facebook/callback', 'FacebookAuthController@facebookCallback');

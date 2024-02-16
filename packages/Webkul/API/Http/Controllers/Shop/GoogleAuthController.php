@@ -10,6 +10,9 @@ use Webkul\API\Http\Resources\Customer\Customer as CustomerResource;
 use Webkul\Customer\Models\Customer;
 use Webkul\Customer\Models\CustomerGroup;
 use Webkul\SocialLogin\Models\CustomerSocialAccount;
+use GuzzleHttp\Exception\ClientException;
+use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Contracts\User as SocialiteUser;
 
 /**
  * Google Controller
@@ -23,7 +26,7 @@ class GoogleAuthController extends Controller
      *
      * @return JsonResponse
      */
-    public function getAuthUrl(Request $request):JsonResponse
+    public function getAuthUrl(Request $request): JsonResponse
     {
         /**
          * Create google client
@@ -44,13 +47,66 @@ class GoogleAuthController extends Controller
     } // getAuthUrl
 
 
+    public function redirectToAuth(Request $request)
+    {
+        return response()->json([
+            'url' => Socialite::driver('google')
+                ->stateless()
+                ->redirect()
+                ->getTargetUrl(),
+        ]);
+    }
+
+    public function handleAuthCallback(Request $request)
+    {
+        try {
+            /** @var SocialiteUser $socialiteUser */
+            $socialiteUser = Socialite::driver('google')->stateless()->user();
+        } catch (ClientException $e) {
+            logger($e->getMessage(), $e->getTrace());
+            return response()->json(['error' => 'Invalid credentials provided.'], 422);
+        }
+
+        $customer = Customer::firstOrNew([
+            "provider_name" => 'google',
+            "provider_id" => $socialiteUser->getId(),
+            "email" => $socialiteUser->getEmail()
+        ]);
+
+        if (!$customer->exists) {
+            $customer->customer_group_id = CustomerGroup::GENERAL;
+            $customer->first_name = $socialiteUser->getName();
+            $customer->email_verified_at = now();
+            $customer->save();
+
+            $social_account = CustomerSocialAccount::create([
+                'customer_id' => $customer->id,
+                'provider_id' => $socialiteUser->getId(),
+                'provider_name' => "google"
+            ]);
+        }
+
+        auth()->guard('customer')->login($customer, true);
+        $customer = auth('customer')->user();
+        $jwtToken = JWTAuth::fromUser($customer);
+
+        return response()->json([
+            'token' => $jwtToken,
+            'message' => 'Logged in successfully.',
+            'is_verified' => true,
+            'data' => new CustomerResource($customer),
+            'two_factor_enabled' => core()->getConfigData('customer.settings.two_factor_authentication.verification') ? true : false
+        ]);
+    }
+
+
     /**
      * Login and register
      * Gets registration data by calling google Oauth2 service
      *
      * @return JsonResponse
      */
-    public function postLogin(Request $request):JsonResponse
+    public function postLogin(Request $request): JsonResponse
     {
 
         /**
@@ -96,25 +152,24 @@ class GoogleAuthController extends Controller
          */
         if (!$customer) {
             $customer = Customer::create([
-                    'provider_id' => $userFromGoogle->id,
-                    'provider_name' => 'google',
-                    'customer_group_id' => CustomerGroup::GENERAL,
-                    'google_access_token' => json_encode($accessToken),
-                    'first_name' => $userFromGoogle->name,
-                    'email' => $userFromGoogle->email
-                    //'avatar' => $providerUser->picture, // in case you have an avatar and want to use google's
-                ]);
-            
+                'provider_id' => $userFromGoogle->id,
+                'provider_name' => 'google',
+                'customer_group_id' => CustomerGroup::GENERAL,
+                'google_access_token' => json_encode($accessToken),
+                'first_name' => $userFromGoogle->name,
+                'email' => $userFromGoogle->email
+                //'avatar' => $providerUser->picture, // in case you have an avatar and want to use google's
+            ]);
+
             $social_account = CustomerSocialAccount::create([
-                    'customer_id'   => $customer->id,
-                    'provider_id'   => $userFromGoogle->id,
-                    'provider_name' => "google"
-                ]);
+                'customer_id' => $customer->id,
+                'provider_id' => $userFromGoogle->id,
+                'provider_name' => "google"
+            ]);
         }
         /**
          * Save new access token for existing user
-         */
-        else {
+         */ else {
             $customer->google_access_token = json_encode($accessToken);
             $customer->save();
         }
@@ -131,9 +186,9 @@ class GoogleAuthController extends Controller
         $jwtToken = JWTAuth::fromUser($customer);
 
         return response()->json([
-            'token'   => AuthHelper::getAuthTokenData($jwtToken),
+            'token' => AuthHelper::getAuthTokenData($jwtToken),
             'message' => 'Logged in successfully.',
-            'data'    => new CustomerResource($customer),
+            'data' => new CustomerResource($customer),
         ], 201);
     } // postLogin
 
@@ -144,7 +199,7 @@ class GoogleAuthController extends Controller
      *
      * @return JsonResponse
      */
-    public function getDrive(Request $request):JsonResponse
+    public function getDrive(Request $request): JsonResponse
     {
         /**
          * Get google api client for session user
@@ -181,10 +236,10 @@ class GoogleAuthController extends Controller
      *
      * @return \Google_Client
      */
-    private function getClient():\Google_Client
+    private function getClient(): \Google_Client
     {
         // load our config.json that contains our credentials for accessing google's api as a json string
-        $configJson = base_path().'/google_config.json';
+        $configJson = base_path() . '/google_config.json';
 
         // define an application name
         $applicationName = 'sunbulah-app';
@@ -214,7 +269,7 @@ class GoogleAuthController extends Controller
      *
      * @return \Google_Client
      */
-    private function getUserClient():\Google_Client
+    private function getUserClient(): \Google_Client
     {
         /**
          * Get Logged in user

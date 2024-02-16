@@ -12,6 +12,7 @@ use Webkul\Customer\Models\Customer;
 use Webkul\Customer\Models\CustomerGroup;
 use Webkul\Customer\Models\UserProduct;
 use Webkul\Customer\Models\UserRecipe;
+use Webkul\Customer\Models\Wishlist;
 use Webkul\Product\Models\Product;
 use Webkul\Product\Models\ProductAttributeValue;
 use Webkul\Product\Models\ProductFlat;
@@ -195,6 +196,10 @@ class StrapiConnector {
                 $bagisto_product = Product::firstWhere("slug", $product["slug"]);
                 if (!is_null($bagisto_product)) {
                     UserProduct::updateOrCreate([
+                        "customer_id" => $customer->id,
+                        "product_id" => $bagisto_product["id"],
+                    ], []);
+                    Wishlist::updateOrCreate([
                         "customer_id" => $customer->id,
                         "product_id" => $bagisto_product["id"],
                     ], []);
