@@ -307,6 +307,8 @@ class CustomerController extends Controller
     {
         try {
             $customer = Customer::findOrFail(auth()->guard($this->guard)->user()->id);
+            $customer->email = $customer->email . "+d_" . now();
+            $customer->save();
             $customer->delete();
 
             // TODO: Delete all user related entries
