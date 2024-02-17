@@ -105,6 +105,7 @@ class CustomerController extends Controller
             'first_name' => $request->get('first_name'),
             'last_name' => $request->get('last_name'),
             'email' => $email,
+            'phone' => $request->get('phone'),
             'password' => $request->get('password'),
             'password' => bcrypt($request->get('password')),
             'token' => $verification_token,
