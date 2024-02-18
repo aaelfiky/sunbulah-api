@@ -76,7 +76,7 @@ class GoogleAuthController extends Controller
         if (!$customer->exists) {
             $customer->customer_group_id = CustomerGroup::GENERAL;
             $customer->first_name = $socialiteUser->getName();
-            $customer->email_verified_at = now();
+            $customer->is_verified = true;
             $customer->save();
 
             $social_account = CustomerSocialAccount::create([
