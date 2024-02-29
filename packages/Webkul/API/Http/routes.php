@@ -241,6 +241,12 @@ Route::group(['prefix' => 'api'], function ($router) {
          });
 
 
+        Route::get('orders/{id}/download', 'CustomerController@downloadReciept')->defaults('_config', [
+            'repository' => 'Webkul\Sales\Repositories\OrderRepository',
+            // 'authorization_required' => true
+        ]);
+
+
         //Invoice routes
         Route::get('invoices', 'InvoiceController@index')->defaults('_config', [
             'repository' => 'Webkul\Sales\Repositories\InvoiceRepository',

@@ -20,6 +20,8 @@ use Webkul\Customer\Models\UserRecipe;
 use Webkul\Customer\Repositories\CustomerGroupRepository;
 use Webkul\Customer\Repositories\CustomerRepository;
 use Webkul\API\Http\Services\CustomerService;
+use Webkul\Sales\Models\Order;
+use PDF;
 
 class CustomerController extends Controller
 {
@@ -330,5 +332,28 @@ class CustomerController extends Controller
                 "data" => false
             ]);
         }
+    }
+
+    public function downloadReciept($id) {
+        $order = Order::find($id);
+        $html = view('shop::emails.sales.order-receipt', compact('order'))->render();
+
+        return PDF::loadHTML($this->adjustArabicAndPersianContent($html))
+            ->setPaper('a4')
+            ->download('order-' . $order->created_at->format('d-m-Y') . '.pdf');
+    }
+
+    private function adjustArabicAndPersianContent($html)
+    {
+        $arabic = new \ArPHP\I18N\Arabic();
+
+        $p = $arabic->arIdentify($html);
+
+        for ($i = count($p) - 1; $i >= 0; $i -= 2) {
+            $utf8ar = $arabic->utf8Glyphs(substr($html, $p[$i - 1], $p[$i] - $p[$i - 1]));
+            $html   = substr_replace($html, $utf8ar, $p[$i - 1], $p[$i] - $p[$i - 1]);
+        }
+
+        return $html;
     }
 }
