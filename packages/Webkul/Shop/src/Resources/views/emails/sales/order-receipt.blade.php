@@ -13,15 +13,15 @@
     <table role="presentation" border="0" width="100%" cellspacing="20">
         <tr>
             <td>
-                <img alt="Flower" src="{{public_path('images/barcode.gif')}}" width="100px">
+                <img alt="Flower" src="{{asset('images/barcode.gif')}}" width="100px">
             </td>
             <td width="800" align="right">
-                <img alt="Flower" src="{{public_path('images/sunbulah.png')}}" width="150px">
+                <img alt="Flower" src="{{asset('images/sunbulah.png')}}" width="150px">
                 <h4>شركة صناعات الأغذية والعجائن الفاخرة (السنبلة)</h4>
             </td>
 
             <td style="color: white;">
-                <img alt="Flower" src="{{public_path('images/qr-code.png')}}" width="180px">
+                <img alt="Flower" src="{{asset('images/qr-code.png')}}" width="180px">
             </td>
         </tr>
     </table>

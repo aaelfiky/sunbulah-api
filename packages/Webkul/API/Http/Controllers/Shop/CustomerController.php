@@ -22,6 +22,9 @@ use Webkul\Customer\Repositories\CustomerRepository;
 use Webkul\API\Http\Services\CustomerService;
 use Webkul\Sales\Models\Order;
 use PDF;
+use ArPHP\I18N\Arabic;
+use Storage;
+
 
 class CustomerController extends Controller
 {
@@ -336,11 +339,30 @@ class CustomerController extends Controller
 
     public function downloadReciept($id) {
         $order = Order::find($id);
-        $html = view('shop::emails.sales.order-receipt', compact('order'))->render();
+        
+        $dateTime = now();
+        $fileName = $dateTime->format('YmdHis') . '_translation.pdf';
+        $data = [
+            [
+                'quantity' => 1,
+                'description' => '1 Year Subscription',
+                'price' => '129.00'
+            ]
+        ];
 
-        return PDF::loadHTML($this->adjustArabicAndPersianContent($html))
-            ->setPaper('a4')
-            ->download('order-' . $order->created_at->format('d-m-Y') . '.pdf');
+        $reportHtml = view('shop::emails.sales.order-receipt-v2', compact('data', 'order'))->render();
+        
+        $arabic = new Arabic();
+        $p = $arabic->arIdentify($reportHtml);
+
+        for ($i = count($p)-1; $i >= 0; $i-=2) {
+            $utf8ar = $arabic->utf8Glyphs(substr($reportHtml, $p[$i-1], $p[$i] - $p[$i-1]));
+            $reportHtml = substr_replace($reportHtml, $utf8ar, $p[$i-1], $p[$i] - $p[$i-1]);
+        }
+
+        $pdf = PDF::loadHTML($reportHtml);
+
+        return $pdf->download('invoice.pdf');
     }
 
     private function adjustArabicAndPersianContent($html)

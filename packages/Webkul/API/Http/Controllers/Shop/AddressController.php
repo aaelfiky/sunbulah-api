@@ -137,4 +137,26 @@ class AddressController extends Controller
             'data'    => new CustomerAddressResource($customerAddress),
         ]);
     }
+
+    /**
+     * To change the default address or make the default address,
+     * by default when first address is created will be the default address
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function makeDefault($id)
+    {
+        $customer = auth($this->guard)->user();
+        if ($default = $customer->default_address) {
+            $this->customerAddressRepository->find($default->id)->update(['default_address' => 0]);
+        }
+
+        if ($address = $this->customerAddressRepository->find($id)) {
+            $address->update(['default_address' => 1]);
+        } else {
+            session()->flash('success', trans('shop::app.customer.account.address.index.default-delete'));
+        }
+
+        return redirect()->back();
+    }
 }

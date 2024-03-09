@@ -219,6 +219,9 @@ Route::group(['prefix' => 'api'], function ($router) {
             'authorization_required' => true
         ]);
 
+        Route::put('addresses/default/{id}', 'AddressController@makeDefault')->defaults('_config', [
+            'authorization_required' => true
+        ]);
 
         //Order routes
         Route::get('orders', 'ResourceController@index')->defaults('_config', [
@@ -240,6 +243,11 @@ Route::group(['prefix' => 'api'], function ($router) {
             }
          });
 
+
+        Route::get('orders/{id}/download-v2', function(){
+            $order = Order::find(1);
+            return view('shop::emails.sales.order-receipt', compact('order'))->render();
+         });
 
         Route::get('orders/{id}/download', 'CustomerController@downloadReciept')->defaults('_config', [
             'repository' => 'Webkul\Sales\Repositories\OrderRepository',
