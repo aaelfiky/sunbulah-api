@@ -358,7 +358,8 @@ class Cart
                 }
             }
 
-            Shipping::collectRates();
+            //TODO: CHECK ARAMEX ISSUE
+            //Shipping::collectRates();
 
             Event::dispatch('checkout.cart.delete.after', $itemId);
 
