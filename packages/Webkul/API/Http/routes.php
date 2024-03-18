@@ -211,6 +211,10 @@ Route::group(['prefix' => 'api'], function ($router) {
             'authorization_required' => true
         ]);
 
+        Route::post('addresses/default/{id}', 'AddressController@makeDefault')->defaults('_config', [
+            'authorization_required' => true
+        ]);
+
         Route::put('addresses/{id}', 'AddressController@update')->defaults('_config', [
             'authorization_required' => true
         ]);
@@ -219,9 +223,6 @@ Route::group(['prefix' => 'api'], function ($router) {
             'authorization_required' => true
         ]);
 
-        Route::put('addresses/default/{id}', 'AddressController@makeDefault')->defaults('_config', [
-            'authorization_required' => true
-        ]);
 
         //Order routes
         Route::get('orders', 'ResourceController@index')->defaults('_config', [
