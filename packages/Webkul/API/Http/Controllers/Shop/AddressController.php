@@ -70,7 +70,7 @@ class AddressController extends Controller
     {
         $customer = auth($this->guard)->user();
 
-        if (request()->input('address1') && ! is_array(request()->input('address1'))) {
+        if (request()->input('address1') && !is_array(request()->input('address1'))) {
             return response()->json([
                 'message' => 'address1 must be an array.',
             ]);
@@ -98,7 +98,7 @@ class AddressController extends Controller
 
         return response()->json([
             'message' => 'Your address has been created successfully.',
-            'data'    => new CustomerAddressResource($customerAddress),
+            'data' => new CustomerAddressResource($customerAddress),
         ]);
     }
 
@@ -111,7 +111,7 @@ class AddressController extends Controller
      */
     public function update(int $id)
     {
-        if (request()->input('address1') && ! is_array(request()->input('address1'))) {
+        if (request()->input('address1') && !is_array(request()->input('address1'))) {
             return response()->json([
                 'message' => 'address1 must be an array.',
             ]);
@@ -134,7 +134,7 @@ class AddressController extends Controller
 
         return response()->json([
             'message' => 'Your address has been updated successfully.',
-            'data'    => new CustomerAddressResource($customerAddress),
+            'data' => new CustomerAddressResource($customerAddress),
         ]);
     }
 
@@ -154,9 +154,12 @@ class AddressController extends Controller
         if ($address = $this->customerAddressRepository->find($id)) {
             $address->update(['default_address' => 1]);
         } else {
-            session()->flash('success', trans('shop::app.customer.account.address.index.default-delete'));
+            return response()->json(['message' => "Failed to find address with this ID"], 400);
         }
 
-        return redirect()->back();
+        return response()->json([
+            'message' => 'Your default address has been set successfully.',
+            'data' => new CustomerAddressResource($address),
+        ]);
     }
 }
