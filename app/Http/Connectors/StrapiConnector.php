@@ -258,8 +258,9 @@ class StrapiConnector {
     public static function updateRecipe($strapi_recipe)
     {
         ini_set('max_execution_time', 180); //3 minutes
-        
-        // Check if the user exists
+
+        if ($strapi_recipe["slug"] === null || trim($strapi_recipe["slug"]) === '') return;
+        // Check if the recipe exists
         $data = [
             "slug" => $strapi_recipe["slug"]
         ];
