@@ -258,10 +258,6 @@ class StrapiConnector {
     public static function updateRecipe($strapi_recipe)
     {
         ini_set('max_execution_time', 180); //3 minutes
-        $recipe = Recipe::updateOrCreate([
-            "slug" => $strapi_recipe["slug"]
-        ]);
-
         
         // Check if the user exists
         $data = [
@@ -283,8 +279,13 @@ class StrapiConnector {
             DB::table('recipes')->insert($data);
         }
 
+        $_recipe = Recipe::firstWhere([
+            "slug" => $strapi_recipe["slug"]
+        ]);
+
+
         RecipeTranslation::updateOrCreate([
-            "recipe_id" => $recipe->id,
+            "recipe_id" => $_recipe->id,
             "locale" => $strapi_recipe["locale"]
         ],[
             "name" => $strapi_recipe["name"],
