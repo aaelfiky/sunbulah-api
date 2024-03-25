@@ -23,6 +23,8 @@ use Webkul\Product\Models\ProductFlat;
 use Webkul\Product\Models\ProductImageProxy;
 use Webkul\Product\Models\ProductInventory;
 
+use Illuminate\Support\Facades\DB;
+
 class StrapiConnector {
     
     /**
@@ -259,6 +261,27 @@ class StrapiConnector {
         $recipe = Recipe::updateOrCreate([
             "slug" => $strapi_recipe["slug"]
         ]);
+
+        
+        // Check if the user exists
+        $data = [
+            "slug" => $strapi_recipe["slug"]
+        ];
+
+        $recipe = DB::table('recipes')
+            ->where('slug', $strapi_recipe["slug"])
+            ->first();
+
+        if ($recipe) {
+            // Update the existing recipe
+            DB::table('recipes')
+                ->where('slug', $strapi_recipe["slug"])
+                ->update($data);
+        } else {
+            // Create a new recipe
+            $data['slug'] = $strapi_recipe["slug"];
+            DB::table('recipes')->insert($data);
+        }
 
         RecipeTranslation::updateOrCreate([
             "recipe_id" => $recipe->id,
