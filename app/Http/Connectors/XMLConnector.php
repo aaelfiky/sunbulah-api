@@ -62,10 +62,50 @@ class XMLConnector
         $XMLresults = $doc->getElementsByTagName("item");
         $XMLresults->length;
 
-        for ($i = 0; $i < $XMLresults->length; $i++) {
+        $filtered_products = [];
+        $uniqueNames = [];
+        $configurable_names = [];
 
+        for ($i = 0; $i < $XMLresults->length; $i++) {
             $product_node = $XMLresults->item($i);
-            $category = XMLConnector::getProductAttribute($product_node, "BEZEI2");
+            $brand = XMLConnector::getProductAttribute($product_node, "BEZEI4");
+            if ($brand != "Sunbulah") continue;
+            $product = [
+                "sku" => XMLConnector::getProductAttribute($product_node, "MATNR"),
+                "name" => XMLConnector::getProductAttribute($product_node, "MAKTX"),
+                "name_ar" => XMLConnector::getProductAttribute($product_node, "MAKTX_AR"),
+                "desc" => XMLConnector::getProductAttribute($product_node, "DESCR"),
+                "category" => XMLConnector::getProductAttribute($product_node, "BEZEI2"),
+                "weight" => XMLConnector::getProductAttribute($product_node, "NTGEW"),
+                "unit" => XMLConnector::getProductAttribute($product_node, "GEWEI"),
+                "price" => XMLConnector::getProductAttribute($product_node, "PRICE"),
+                "brand" => XMLConnector::getProductAttribute($product_node, "BEZEI4")
+            ];
+
+            $splitted_name = explode('(', $product["name"]);
+
+            $splitted_name = rtrim($splitted_name[0]," ");
+
+            if (in_array($splitted_name, $uniqueNames)) {
+                if (!in_array($splitted_name, $configurable_names))
+                    array_push($configurable_names, $splitted_name);
+            } else {
+                array_push($uniqueNames, $splitted_name);
+            }
+
+            array_push($filtered_products, $product);
+        }
+
+        usort($filtered_products, function($a, $b)
+        {
+            return strcmp($a["name"], $b["name"]);
+        });
+
+        $configurable_result_products = [];
+
+        foreach ($filtered_products as $_product) {
+
+            $category = $_product["category"];
             $category_slug = str_replace(' ', '-', strtolower($category));
             $category = Category::updateOrCreate(
                 ["strapi_slug" => $category_slug],
@@ -85,13 +125,57 @@ class XMLConnector
                 "slug" => $category_slug
             ]);
 
-            $sku = XMLConnector::getProductAttribute($product_node, "MATNR");
+            $splitted_name = explode('(', $_product["name"]);
+
+            $splitted_name = rtrim($splitted_name[0]," ");
+
+
+            $product_slug = str_replace(' ', '-', strtolower($splitted_name));
+
+
+            $type = "simple";
+            $parent_product_id = null;
+            $parent_pf_id = null;
+            $parent_pf_ar_id = null;
+
+            // Is configurable (has variants)
+            if (in_array($splitted_name, $configurable_names)) {
+                if (in_array($splitted_name, $configurable_result_products)) { // Is configurable (has variants) and is a variant
+
+                    // Find parent
+                    $p = Product::firstWhere([
+                        "type" => "configurable",
+                        "slug" => $product_slug
+                    ]);
+                    $pf = ProductFlat::firstWhere([
+                        "product_id" => $p->id,
+                        "locale" => "en"
+                    ]);
+    
+                    $pf_ar = ProductFlat::firstWhere([
+                        "product_id" => $p->id,
+                        "locale" => "ar"
+                    ]);
+                    $parent_product_id = $p->id;
+                    $parent_pf_id = $pf->id;
+                    $parent_pf_ar_id = $pf_ar->id;
+                    
+                } else { // is a parent
+                    $type = "configurable";
+                    array_push($configurable_result_products, $splitted_name);
+                }
+
+            }
+             
+
+            $sku = $_product["sku"];
             $product = Product::updateOrCreate(
                 ["sku" => $sku],
                 [
-                    "type" => "simple",
+                    "type" => $type,
                     "attribute_family_id" => 1,
-                    "slug" => $category_slug . $sku
+                    "slug" => $product_slug,
+                    "parent_id" => $parent_product_id
                 ]
             );
             if ($product->wasRecentlyCreated) {
@@ -110,42 +194,43 @@ class XMLConnector
                     "attribute_id" => $attr_value->id
                 ];
 
-                $tag_name = '';
-                $tag_name_ar = '';
+                
+                $value = '';
+                $value_ar = '';
                 switch ($attribute) {
                     case 'name':
-                        $tag_name = 'MAKTX';
-                        $tag_name_ar = 'MAKTX_AR';
+                        $value = $_product["name"];
+                        $value_ar = $_product["name_ar"];
                         break;
                     case 'description':
-                        $tag_name = 'DESCR';
+                        $value = $_product["desc"];
                         break;
                     case 'short_description':
-                        $tag_name = 'DESCR';
+                        $value = $_product["desc"];
                         break;
                     case 'sku':
-                        $tag_name = 'MATNR';
+                        $value = $_product["sku"];
                         break;
                     case 'product_number':
-                        $tag_name = 'MATNR';
+                        $value = $_product["sku"];
                         break;
                     case 'price':
-                        $tag_name = 'PRICE';
+                        $value = $_product["price"];
                         break;
                     case 'weight':
-                        $tag_name = 'NTGEW';
+                        $value = $_product["weight"];
                         break;
                     default:
                         break;
                 }
                 ;
-                $attr_data_en["text_value"] = XMLConnector::getProductAttribute($product_node, $tag_name);
-                if (!($tag_name_ar === null || trim($tag_name_ar) === '')) {
+                $attr_data_en["text_value"] = $value;
+                if (!($value_ar === null || trim($value_ar) === '')) {
                     $attr_data_ar = [
                         "channel" => "default",
                         "product_id" => $product->id,
                         "attribute_id" => $attr_value->id,
-                        "text_value" => XMLConnector::getProductAttribute($product_node, $tag_name_ar)
+                        "text_value" => $value_ar
                     ];
                     ProductAttributeValue::updateOrCreate([
                         "product_id" => $product->id,
@@ -181,37 +266,41 @@ class XMLConnector
 
             $productFlat = ProductFlat::updateOrCreate(
                 [
-                    "product_id" => $product->id,
+                    'sku' => $sku,
                     "locale" => "en"
                 ],
                 [
-                    'sku' => $sku,
-                    'name' => XMLConnector::getProductAttribute($product_node, "MAKTX"),
-                    "description" => XMLConnector::getProductAttribute($product_node, "DESCR"),
-                    "price" => XMLConnector::getProductAttribute($product_node, "PRICE"),
-                    "weight" => XMLConnector::getProductAttribute($product_node, "NTGEW"),
+                    "product_id" => $product->id,
+                    'name' => $_product["name"],
+                    "description" => $_product["desc"],
+                    "price" => $_product["price"],
+                    "weight" => $_product["weight"],
+                    "weight_label" => $_product["weight"] . " " . $_product["unit"],
                     "new" => 1,
                     'status' => 1,
                     "channel" => "default",
-                    "visible_individually" => 1
+                    "visible_individually" => 1,
+                    "parent_id" => $parent_pf_id
                 ]
             );
 
             $productFlatAr = ProductFlat::updateOrCreate(
                 [
-                    "product_id" => $product->id,
+                    'sku' => $sku,
                     "locale" => "ar"
                 ],
                 [
-                    'sku' => $sku,
-                    'name' => XMLConnector::getProductAttribute($product_node, "MAKTX_AR"),
-                    "description" => XMLConnector::getProductAttribute($product_node, "DESCR"),
-                    "price" => XMLConnector::getProductAttribute($product_node, "PRICE"),
-                    "weight" => XMLConnector::getProductAttribute($product_node, "NTGEW"),
+                    "product_id" => $product->id,
+                    'name' => $_product["name_ar"],
+                    "description" => $_product["desc"],
+                    "price" => $_product["price"],
+                    "weight" => $_product["weight"],
+                    "weight_label" => $_product["weight"] . " " . $_product["unit"],
                     "new" => 1,
                     'status' => 1,
                     "channel" => "default",
-                    "visible_individually" => 1
+                    "visible_individually" => 1,
+                    "parent_id" => $parent_pf_ar_id
                 ]
             );
         }

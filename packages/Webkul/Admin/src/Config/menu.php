@@ -74,6 +74,12 @@ return [
         'sort'       => 4,
         'icon-class' => '',
     ], [
+        'key'        => 'catalog.recipes',
+        'name'       => 'admin::app.layouts.recipes',
+        'route'      => 'admin.catalog.recipes.index',
+        'sort'       => 3,
+        'icon-class' => '',
+    ], [
         'key'        => 'customers',
         'name'       => 'admin::app.layouts.customers',
         'route'      => 'admin.customer.index',

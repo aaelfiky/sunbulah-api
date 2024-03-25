@@ -345,6 +345,30 @@ Route::group(['middleware' => ['web', 'admin_locale']], function () {
                     'view' => 'admin.catalog.products.edit',
                 ])->name('admin.catalog.products.file.download');
 
+                // Catalog Recipes Routes
+                Route::post('/recipes/delete/{id}', 'Webkul\Recipe\Http\Controllers\RecipeController@remove')->name('admin.catalog.recipes.delete');
+
+                Route::get('/recipes', 'Webkul\Recipe\Http\Controllers\RecipeController@index')->defaults('_config', [
+                    'view' => 'admin::catalog.recipes.index',
+                ])->name('admin.catalog.recipes.index');
+
+                Route::get('/recipes/create', 'Webkul\Recipe\Http\Controllers\RecipeController@create')->defaults('_config', [
+                    'view' => 'admin::catalog.recipes.create',
+                ])->name('admin.catalog.recipes.create');
+
+                Route::post('/recipes/create', 'Webkul\Recipe\Http\Controllers\RecipeController@store')->defaults('_config', [
+                    'redirect' => 'admin.catalog.recipes.index',
+                ])->name('admin.catalog.recipes.store');
+
+                Route::get('/recipes/edit/{id}', 'Webkul\Recipe\Http\Controllers\RecipeController@edit')->defaults('_config', [
+                    'view' => 'admin::catalog.recipes.edit',
+                ])->name('admin.catalog.recipes.edit');
+
+                Route::put('/recipes/edit/{id}', 'Webkul\Recipe\Http\Controllers\RecipeController@update')->defaults('_config', [
+                    'redirect' => 'admin.catalog.recipes.index',
+                ])->name('admin.catalog.recipes.update');
+                // End Catalog Recipes Routes
+
                 // Catalog Category Routes
                 Route::get('/categories', 'Webkul\Category\Http\Controllers\CategoryController@index')->defaults('_config', [
                     'view' => 'admin::catalog.categories.index',

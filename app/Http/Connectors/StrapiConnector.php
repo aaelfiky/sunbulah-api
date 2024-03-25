@@ -8,6 +8,10 @@ use Illuminate\Support\Str;
 use Webkul\Attribute\Models\Attribute;
 use Webkul\Category\Models\Category;
 use Webkul\Category\Models\CategoryTranslation;
+
+use Webkul\Recipe\Models\Recipe;
+use Webkul\Recipe\Models\RecipeTranslation;
+
 use Webkul\Customer\Models\Customer;
 use Webkul\Customer\Models\CustomerGroup;
 use Webkul\Customer\Models\UserProduct;
@@ -224,5 +228,47 @@ class StrapiConnector {
         $results = $response->json();
 
         return $results;
+    }
+
+
+    public static function syncRecipes(string $locale = "en"): array
+    {
+        ini_set('max_execution_time', 180); //3 minutes
+
+        $base_url = env('STRAPI_URL');
+
+        Log::info("Started: Fetching Favorite Recipes");
+
+        $endpoint = "/recipes?_locale=$locale";
+
+        $response = Http::get($base_url . $endpoint);
+
+        $results = $response->json();
+
+        foreach ($results as $strapi_recipe) {
+            StrapiConnector::updateRecipe($strapi_recipe);
+        }
+
+        return $results;
+    }
+
+
+    public static function updateRecipe($strapi_recipe)
+    {
+        ini_set('max_execution_time', 180); //3 minutes
+        $recipe = Recipe::updateOrCreate([
+            "slug" => $strapi_recipe["slug"]
+        ]);
+
+        RecipeTranslation::updateOrCreate([
+            "recipe_id" => $recipe->id,
+            "locale" => $strapi_recipe["locale"]
+        ],[
+            "name" => $strapi_recipe["name"],
+            "preparation_time" => $strapi_recipe["preparation_time"],
+            "serves" => $strapi_recipe["serves"],
+            "cooking_time" => $strapi_recipe["cooking_time"],
+            "slug" => $strapi_recipe["slug"]
+        ]);
     }
 }

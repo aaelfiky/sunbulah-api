@@ -161,6 +161,7 @@ Route::group(['prefix' => 'api'], function ($router) {
 
 
         //Customer routes
+        Route::get('get-products', 'CustomerController@getProducts');
         Route::post('customer/login', 'SessionController@create');
 
         Route::post('customer/forgot-password', 'ForgotPasswordController@store');
