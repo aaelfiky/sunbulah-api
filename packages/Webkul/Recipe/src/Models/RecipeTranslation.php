@@ -13,6 +13,9 @@ class RecipeTranslation extends Model
 
     protected $casts = [
         'seo' => 'json',
-        'instructions' => 'json'
+        'instructions' => 'array',
+        'ingredients' => 'array',
+        'author' => 'json',
+        'recipe_card' => 'json'
     ];
 }

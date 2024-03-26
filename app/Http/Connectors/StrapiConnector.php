@@ -5,6 +5,7 @@ namespace App\Http\Connectors;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 use Webkul\Attribute\Models\Attribute;
 use Webkul\Category\Models\Category;
 use Webkul\Category\Models\CategoryTranslation;
@@ -45,7 +46,7 @@ class StrapiConnector {
         $results = $response->json();
 
         foreach ($results as $strapi_category) {
-            StrapiConnector::updateProduct($strapi_category);
+            self::updateProduct($strapi_category);
         }
     }
 
@@ -248,7 +249,7 @@ class StrapiConnector {
         $results = $response->json();
 
         foreach ($results as $strapi_recipe) {
-            StrapiConnector::updateRecipe($strapi_recipe);
+            self::updateRecipe($strapi_recipe);
         }
 
         return $results;
@@ -258,6 +259,22 @@ class StrapiConnector {
     public static function updateRecipe($strapi_recipe)
     {
         ini_set('max_execution_time', 180); //3 minutes
+
+        $image_desktop = $image_mobile = $recipe_card = $recipe_card_image = null;
+
+        if ($strapi_recipe["image_desktop"] &&  $strapi_recipe["image_desktop"]["url"]) {
+            $image_desktop = [
+                "name" => $strapi_recipe["image_desktop"]["name"],
+                "url" => $strapi_recipe["image_desktop"]["url"]
+            ];
+        }
+
+        if ($strapi_recipe["image_mobile"] &&  $strapi_recipe["image_mobile"]["url"]) {
+            $image_mobile = [
+                "name" => $strapi_recipe["image_mobile"]["name"],
+                "url" => $strapi_recipe["image_mobile"]["url"]
+            ];
+        }
 
         if ($strapi_recipe["slug"] === null || trim($strapi_recipe["slug"]) === '') return;
         // Check if the recipe exists
@@ -285,6 +302,39 @@ class StrapiConnector {
         ]);
 
 
+        if (isset($strapi_recipe["RecipeCard"])) {
+            if (isset($strapi_recipe["RecipeCard"]["image"]) && isset($strapi_recipe["RecipeCard"]["image"]["url"])) {
+                $recipe_card_image = [
+                    "name" => $strapi_recipe["RecipeCard"]["image"]["name"],
+                    "url" => $strapi_recipe["RecipeCard"]["image"]["url"]
+                ];
+                // self::uploadImage($recipe_card_image, $_recipe, "recipe_card/");
+            }
+            $recipe_card = [
+                "description" => $strapi_recipe["RecipeCard"]["description"],
+                "image" => optional($recipe_card_image)["name"] ?? ""
+            ];
+        }
+
+        $ingredients = count($strapi_recipe["ingredients"]) > 0 && isset($strapi_recipe["ingredients"][0]["IngredientDetails"]) ?
+            array_map(function ($value) {
+                return $value["detail"];
+            }, $strapi_recipe["ingredients"][0]["IngredientDetails"])
+            : null;
+
+        $instructions = isset($strapi_recipe["instructions"]) ?
+            array_map(function ($value) {
+                return $value["text"];
+            }, $strapi_recipe["instructions"])
+            : null;
+
+        if (isset($image_desktop)) {
+            self::uploadImage($image_desktop, $_recipe);
+        }
+        if (isset($image_mobile)) {
+            self::uploadImage($image_mobile, $_recipe);
+        }
+        
         RecipeTranslation::updateOrCreate([
             "recipe_id" => $_recipe->id,
             "locale" => $strapi_recipe["locale"]
@@ -293,7 +343,32 @@ class StrapiConnector {
             "preparation_time" => $strapi_recipe["preparation_time"],
             "serves" => $strapi_recipe["serves"],
             "cooking_time" => $strapi_recipe["cooking_time"],
-            "slug" => $strapi_recipe["slug"]
+            "slug" => $strapi_recipe["slug"],
+            "image_desktop" => optional($image_desktop)["name"] ?? "",
+            "image_mobile" => optional($image_mobile)["name"] ?? "",
+            "recipe_card" => $recipe_card,
+            "ingredients" => $ingredients,
+            "instructions" => $instructions,
+            "video_link" => $strapi_recipe["video_link"],
+            "author" => [
+                "name" => optional($strapi_recipe["author"])["name"] ?? "",
+                "bio" => optional($strapi_recipe["author"])["bio"] ?? ""
+            ]
         ]);
+    }
+
+
+    public static function uploadImage($image, $recipe, $subpath = "") {
+        
+        $_image = file_get_contents($image["url"]);
+
+        $path = "recipe/$recipe->id" . "_" . $recipe->id . (isset($subpath) ? "/$subpath" : "");
+
+        if(!Storage::exists($path)){
+
+            Storage::makeDirectory($path);
+        }
+        
+        file_put_contents(storage_path("app/public/$path" .  (isset($subpath) ? "" : "/") . $image["name"]), $_image);
     }
 }
