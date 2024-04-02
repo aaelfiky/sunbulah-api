@@ -108,7 +108,7 @@ class XMLConnector
 
             $category = $_product["category"];
             $category_slug = str_replace(' ', '-', strtolower($category));
-            $category = Category::updateOrCreate(
+            $_category = Category::updateOrCreate(
                 ["strapi_slug" => $category_slug],
                 [
                     "position" => 1,
@@ -118,7 +118,7 @@ class XMLConnector
             );
 
             CategoryTranslation::updateOrCreate([
-                "category_id" => $category->id,
+                "category_id" => $_category->id,
                 "locale" => "en"
             ], [
                 "name" => $category,
@@ -249,7 +249,7 @@ class XMLConnector
 
             }
 
-            $product->categories()->sync([$category->id]);
+            $product->categories()->sync([$_category->id]);
 
             // UPDATE PRODUCT INVENTORY
             $productInventory = ProductInventory::updateOrCreate(
