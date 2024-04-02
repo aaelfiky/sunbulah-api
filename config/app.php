@@ -267,6 +267,7 @@ return [
         Webkul\Inventory\Providers\InventoryServiceProvider::class,
         Webkul\Product\Providers\ProductServiceProvider::class,
         Webkul\Recipe\Providers\RecipeServiceProvider::class,
+        Webkul\Tag\Providers\TagServiceProvider::class,
         Webkul\Checkout\Providers\CheckoutServiceProvider::class,
         Webkul\Shipping\Providers\ShippingServiceProvider::class,
         Webkul\Payment\Providers\PaymentServiceProvider::class,

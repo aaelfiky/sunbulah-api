@@ -79,7 +79,8 @@ class XMLConnector
                 "weight" => XMLConnector::getProductAttribute($product_node, "NTGEW"),
                 "unit" => XMLConnector::getProductAttribute($product_node, "GEWEI"),
                 "price" => XMLConnector::getProductAttribute($product_node, "PRICE"),
-                "brand" => XMLConnector::getProductAttribute($product_node, "BEZEI4")
+                "brand" => XMLConnector::getProductAttribute($product_node, "BEZEI4"),
+                "quantity" => XMLConnector::getProductAttribute($product_node, "LABST")
             ];
 
             $splitted_name = explode('(', $product["name"]);
@@ -260,7 +261,7 @@ class XMLConnector
             );
 
             if ($productInventory->wasRecentlyCreated) {
-                $productInventory->qty = 100; // TO BE REPLACED WITH KDMAT
+                $productInventory->qty = isset($_product["quantity"]) ? floor($_product["quantity"]) : 100;
                 $productInventory->save();
             }
 

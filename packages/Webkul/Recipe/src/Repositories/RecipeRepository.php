@@ -7,6 +7,9 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Webkul\Recipe\Models\RecipeTranslation;
 use Webkul\Recipe\Models\Recipe;
+use Webkul\Product\Models\Product;
+use Webkul\Tag\Models\Tag;
+use Webkul\Tag\Models\TagTranslation;
 use Illuminate\Pagination\Paginator;
 use Webkul\Core\Eloquent\Repository;
 use Illuminate\Support\Facades\Event;
@@ -57,7 +60,6 @@ class RecipeRepository extends Repository
         Event::dispatch('catalog.recipe.create.before');
 
         $locale = core()->getRequestedLocaleCode();
-
         
         $_model = app()->make($this->model());
 
@@ -66,20 +68,6 @@ class RecipeRepository extends Repository
         $data_ = $data;
 
         $data[$locale] = array_intersect_key($data, array_flip($fillable));
-
-        // if (isset($data['locale']) && $data['locale'] == 'all') {
-        //     $model = app()->make($this->model());
-
-        //     foreach (core()->getAllLocales() as $locale) {
-        //         foreach ($model->translatedAttributes as $attribute) {
-        //             if (isset($data[$attribute])) {
-        //                 $data[$locale->code][$attribute] = $data[$attribute];
-        //                 $data[$locale->code]['locale_id'] = $locale->id;
-        //             }
-        //         }
-        //     }
-        // }
-
 
         unset($data["name"]);
         unset($data["preparation_time"]);
@@ -105,8 +93,6 @@ class RecipeRepository extends Repository
         unset($data[$locale]["image_desktop"]);
         unset($data[$locale]["image_mobile"]);
 
-
-        
         $recipe = $this->model->create($data);
 
         DB::update('update recipes set slug = ? where id = ?', [$data["slug"], $recipe->id]);
@@ -129,6 +115,11 @@ class RecipeRepository extends Repository
     {
         $recipe = $this->find($id);
 
+        if (isset($data["products"]))
+        {
+            $recipe->products()->sync($data["products"]);
+        }
+
         Event::dispatch('catalog.recipe.update.before', $id);
 
         // $data = $this->setSameAttributeValueToAllLocale($data, 'slug');
@@ -138,11 +129,41 @@ class RecipeRepository extends Repository
         $fillable = $_model->translatedAttributes;
         $data[$locale] = array_intersect_key($data, array_flip($fillable));
 
+        $new_tags = $data["new_tags"];
+
+        $added_new_tags = [];
+
+        if (isset($new_tags) && count($new_tags) > 0) {
+            foreach ($new_tags as $new_tag) {
+                $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $new_tag)));
+                $created = Tag::create(["slug" => $slug]);
+                $translation = TagTranslation::create([
+                    "name" => $new_tag,
+                    "locale" => $locale,
+                    "tag_id" => $created->id
+                ]);
+                array_push($added_new_tags, $created->id);
+            }
+        }
+
+        if (count($added_new_tags) > 0)
+        {
+            $recipe->tags()->sync($added_new_tags);
+            unset($data["new_tags"]);
+        }
+
+        if (isset($data["tags"]))
+        {
+            $recipe->tags()->sync($data["tags"]);
+            unset($data["tags"]);
+        }
+
         unset($data["locale"]); 
         unset($data["seo_title"]);
         unset($data["seo_desc"]);
         unset($data["seo_image"]);
         unset($data["seo_keywords"]);
+        unset($data["products"]);
 
         $data[$locale]["seo"] = [
             "title" => $data["seo_title"] ?? "",
@@ -150,6 +171,14 @@ class RecipeRepository extends Repository
             "image" => $data["seo_image"] ?? "",
             "keywords" => $data["seo_keywords"] ?? ""
         ];
+
+        if (isset($data["image_desktop"]) && count($data["image_desktop"]) > 0 && strlen($data["image_desktop"]["image_0"]) == 0) {
+            unset($data["image_desktop"]);
+        }
+
+        if (isset($data[$locale]["image_desktop"]) && count($data[$locale]["image_desktop"]) > 0 && strlen($data[$locale]["image_desktop"]["image_0"]) == 0) {
+            unset($data[$locale]["image_desktop"]);
+        }
 
         $recipe->update($data);
 
@@ -175,6 +204,26 @@ class RecipeRepository extends Repository
 
         Event::dispatch('catalog.recipe.delete.after', $id);
     }
+
+    /**
+     * Retrive recipe from slug.
+     *
+     * @param string $slug
+     * @return \Webkul\Recipe\Contracts\Recipe
+     */
+    public function findBySlugOrFail($slug)
+    {
+        $recipe = $this->model->whereTranslation('slug', $slug)->first();
+
+        if ($recipe) {
+            return $recipe;
+        }
+
+        throw (new ModelNotFoundException)->setModel(
+            get_class($this->model), $slug
+        );
+    }
+
 
      /**
      * @param int $categoryId
@@ -229,14 +278,42 @@ class RecipeRepository extends Repository
                 }
             }
         } else {
-            if ($recipe_translation->{$type}) {
-                Storage::delete($recipe_translation->{$type});
-            }
+            // if ($recipe_translation->{$type}) {
+            //     Storage::delete($recipe_translation->{$type});
+            // }
 
-            $recipe_translation->{$type} = null;
-            $recipe_translation->save();
+            // $recipe_translation->{$type} = null;
+            // $recipe_translation->save();
+        }
+    }
+
+    public function getAll()
+    {
+        
+        $query = $this->model->query();
+        if (request()->has('category_id')) {
+            $product_ids = Product::whereHas('categories', function ($q) {
+                $q->where("category_id", request()->input("category_id"));
+            })->select('products.id')->get()->pluck('id')->toArray();
+
+            $recipe_ids = RecipeTranslation::whereIn('main_product_id', $product_ids)->select('recipe_id')->get()->pluck('recipe_id')->toArray();
+            $query = $query->whereIn('id', $recipe_ids);
         }
 
+        if (request()->has('product_id')) {
+            $recipe_ids = RecipeTranslation::where('main_product_id', request()->input("product_id"))->select('recipe_id')->get()->pluck('recipe_id')->toArray();
+            $query = $query->whereIn('id', $recipe_ids);
+        }
 
+        if (request()->has('cooking_time')) {
+            $recipe_ids = RecipeTranslation::where('cooking_time', request()->input("cooking_time"))->select('recipe_id')->get()->pluck('recipe_id')->toArray();
+            $query = $query->whereIn('id', $recipe_ids);
+        }
+
+        if (request()->has('tags')) {
+           // TODO: Add Recipe Tags
+        }
+
+        return $query->get();
     }
 }

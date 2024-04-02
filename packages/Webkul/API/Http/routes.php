@@ -64,6 +64,13 @@ Route::group(['prefix' => 'api'], function ($router) {
             'resource' => 'Webkul\API\Http\Resources\Catalog\AttributeFamily'
         ]);
 
+        //Recipe routes
+        Route::get('recipes', 'RecipeController@index');
+        Route::get('recipes/{slug}', 'RecipeController@getBySlug');
+
+        // Route::get('recipes/{id}', 'RecipeController@get');
+        Route::get('/tags', 'TagController@index');
+
 
         //Product routes
         Route::get('products', 'ProductController@index');

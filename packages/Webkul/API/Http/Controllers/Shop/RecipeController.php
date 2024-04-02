@@ -41,13 +41,13 @@ class RecipeController extends Controller
     /**
      * Returns a individual resource.
      *
-     * @param  int  $id
+     * @param  string  $slug
      * @return \Illuminate\Http\Response
      */
-    public function get($id)
+    public function getBySlug($slug)
     {
         return new RecipeResource(
-            $this->recipeRepository->findOrFail($id)
+            $this->recipeRepository->findBySlugOrFail($slug)
         );
     }
 

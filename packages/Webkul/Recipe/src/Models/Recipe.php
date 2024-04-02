@@ -5,6 +5,9 @@ namespace Webkul\Recipe\Models;
 use Webkul\Core\Eloquent\TranslatableModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Webkul\Product\Models\Product;
+use Webkul\Tag\Models\Tag;
+use Webkul\Product\Models\ProductProxy;
 use Webkul\Recipe\Contracts\Recipe as RecipeContract;
 
 class Recipe extends TranslatableModel implements RecipeContract
@@ -13,9 +16,7 @@ class Recipe extends TranslatableModel implements RecipeContract
 
     protected $guarded = [];
 
-    protected $with = ['translations'];
-
-    
+    protected $with = ['product'];
 
     public $translatedAttributes = [
         'name',
@@ -43,12 +44,26 @@ class Recipe extends TranslatableModel implements RecipeContract
     // Relation with Products 
     public function products()
     {
-        return $this->hasMany(RecipeProduct::class, 'recipe_id');
+        return $this->belongsToMany(Product::class, 'recipe_product', 'recipe_id', 'product_id');
     }
 
     public function locales()
     {
         return $this->hasMany(RecipeTranslation::class, 'recipe_id');
+    }
+
+    // Relation with Tags 
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'recipe_tag', 'recipe_id', 'tag_id');
+    }
+
+       /**
+     * Get the product that owns the image.
+     */
+    public function product()
+    {
+        return $this->belongsTo(ProductProxy::modelClass(), 'main_product_id');
     }
 
     // Relation with Topics

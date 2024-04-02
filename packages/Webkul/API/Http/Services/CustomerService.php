@@ -68,10 +68,17 @@ class CustomerService
 
     public function getFavoriteRecipes(Request $request = null)
     {
-        $recipe_ids = UserRecipe::where("customer_id", auth()->guard($this->guard)->user()->id)->get()->pluck('recipe_id')->toArray();
-        $query = count($recipe_ids) > 0 ? "id_in=" . implode("&id_in=", $recipe_ids) : "";
-        $results = count($recipe_ids) == 0 ? [] : StrapiConnector::getFavoriteRecipes($query);
+        if (is_null(auth()->guard($this->guard)->user())) {
+            return [];
+        }
+        
+        $recipes = UserRecipe::with("recipe")->where("customer_id", auth()->guard($this->guard)->user()->id)->get();
+        $results = [];
 
+        foreach ($recipes as $recipe) {
+            array_push($results, $recipe->recipe);
+        }
+        
         return $results;
     }
 
