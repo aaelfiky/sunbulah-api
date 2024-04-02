@@ -360,7 +360,8 @@ class StrapiConnector {
 
     public static function uploadImage($image, $recipe, $subpath = "") {
         
-        $_image = file_get_contents($image["url"]);
+        $_image = curl_get_file_contents($image["url"]);
+        //$_image = file_get_contents($image["url"]);
 
         $path = "recipe/$recipe->id" . "_" . $recipe->id . (isset($subpath) ? "/$subpath" : "");
 
@@ -370,5 +371,17 @@ class StrapiConnector {
         }
         
         file_put_contents(storage_path("app/public/$path" .  (isset($subpath) ? "" : "/") . $image["name"]), $_image);
+    }
+
+    function curl_get_file_contents($URL)
+    {
+        $c = curl_init();
+        curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($c, CURLOPT_URL, $URL);
+        $contents = curl_exec($c);
+        curl_close($c);
+
+        if ($contents) return $contents;
+        else return FALSE;
     }
 }
