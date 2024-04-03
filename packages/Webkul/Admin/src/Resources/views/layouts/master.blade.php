@@ -15,6 +15,15 @@
 
         <link rel="stylesheet" href="{{ asset('vendor/webkul/ui/assets/css/ui.css') }}">
         <link rel="stylesheet" href="{{ asset('vendor/webkul/admin/assets/css/admin.css') }}">
+        <style>
+            .temp-icon {
+                height: 35px;
+                width: 35px;
+                margin-bottom: 0.7rem;
+                border: 3px solid #b6b6b6;
+                border-radius: 2px;
+            }
+        </style>
 
         @yield('head')
 
