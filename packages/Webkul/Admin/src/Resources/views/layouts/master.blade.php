@@ -19,7 +19,7 @@
             .temp-icon {
                 height: 35px;
                 width: 35px;
-                margin-bottom: 0.7rem;
+                margin-bottom: 0.7rem!important;
                 border: 3px solid #b6b6b6;
                 border-radius: 2px;
             }
