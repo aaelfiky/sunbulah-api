@@ -139,7 +139,7 @@ class ProductRepository extends Repository
      *
      * @return \Illuminate\Support\Collection
      */
-    public function getAll($categoryId = null)
+    public function getAll($categoryId = null, $mostSelling = false)
     {
         $params = request()->input();
 
@@ -153,7 +153,7 @@ class ProductRepository extends Repository
 
         $page = Paginator::resolveCurrentPage('page');
 
-        $repository = app(ProductFlatRepository::class)->scopeQuery(function ($query) use ($params, $categoryId) {
+        $repository = app(ProductFlatRepository::class)->scopeQuery(function ($query) use ($params, $categoryId, $mostSelling) {
             $channel = core()->getRequestedChannelCode();
 
             $locale = core()->getRequestedLocaleCode();
@@ -199,6 +199,19 @@ class ProductRepository extends Repository
             /* added for api as per the documentation */
             if (isset($params['url_key'])) {
                 $qb->where('product_flat.url_key', 'like', '%' . urldecode($params['url_key']) . '%');
+            }
+
+            if ($mostSelling) {
+                $most_selling_products = DB::table('order_items')
+                    ->selectRaw('product_id, COUNT(*) AS sales_count')
+                    ->groupBy('product_id')
+                    ->orderByDesc('sales_count')
+                    ->limit(10)
+                    ->get()
+                    ->pluck('product_id')
+                    ->toArray();
+
+                $qb->whereIn('product_flat.product_id', $most_selling_products);
             }
 
             # sort direction

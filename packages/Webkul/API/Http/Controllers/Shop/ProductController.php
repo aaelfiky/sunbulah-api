@@ -39,6 +39,16 @@ class ProductController extends Controller
     }
 
     /**
+     * Returns a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getMostSelling()
+    {
+        return ProductResource::collection($this->productRepository->getAll(null, true));
+    }
+
+    /**
      * Returns a individual resource.
      *
      * @param  int  $id
