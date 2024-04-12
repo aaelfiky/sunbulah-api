@@ -4,6 +4,11 @@
     {{ __('admin::app.catalog.products.edit-title') }}
 @stop
 
+@section('css')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+@stop
+
 @section('content')
     <div class="content">
         @php
@@ -67,7 +72,6 @@
 
                 @foreach ($product->attribute_family->attribute_groups as $index => $attributeGroup)
                     <?php $customAttributes = $product->getEditableAttributes($attributeGroup); ?>
-
                     @if (count($customAttributes))
 
                         {!! view_render_event('bagisto.admin.catalog.product.edit_form_accordian.' . $attributeGroup->name . '.before', ['product' => $product]) !!}
@@ -157,6 +161,24 @@
 
                                 @endforeach
 
+                                @if ($attributeGroup->name == 'General' && is_null($product->parent_id))
+                                    <div class="control-group boolean">
+                                        <label for="product_type">Has Variant(s)</label>
+                                        <label class="switch">
+                                            <input type="checkbox" class="control" id="product_type" name="product_type" 
+                                                {{ $product->type == 'configurable' ? 'checked' : ''}}
+                                                value="1">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                @endif
+
+                                @if ($attributeGroup->name == 'Description')
+
+                                    <nutrition-facts></nutrition-facts>
+
+                                @endif
+
                                 @if ($attributeGroup->name == 'Price')
 
                                     @include ('admin::catalog.products.accordians.customer-group-price')
@@ -198,6 +220,8 @@
 @push('scripts')
     @include('admin::layouts.tinymce')
 
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <script>
         $(document).ready(function () {
             $('#channel-switcher, #locale-switcher').on('change', function (e) {
@@ -226,4 +250,54 @@
             });
         });
     </script>
+
+    <script type="text/x-template" id="nutrition-facts-template">
+        <div class="control-group" :class="[errors.has('nutrition-facts') ? 'has-error' : '']">
+            <label for="nutrition-facts">{{ __('admin::app.catalog.products.nutrition-facts') }}</label>
+            <textarea class="control" id="nutrition-facts" name="nutrition_facts" data-vv-as="&quot;{{ __('admin::app.catalog.products.nutrition-facts') }}&quot;">{{ $product->nutrition_facts }}</textarea>
+            <span class="control-error" v-if="errors.has('nutrition-facts')">@{{ errors.first('nutrition-facts') }}</span>
+        </div>
+    </script>
+
+    <script>
+        Vue.component('nutrition-facts', {
+            template: '#nutrition-facts-template',
+
+            inject: ['$validator'],
+
+            data: function() {
+                return {
+                    isRequired: true,
+                }
+            },
+
+            created: function () {
+                let self = this;
+
+                $(document).ready(function () {
+                    $('#display_mode').on('change', function (e) {
+                        if ($('#display_mode').val() != 'products_only') {
+                            self.isRequired = true;
+                        } else {
+                            self.isRequired = false;
+                        }
+                    });
+
+                    tinyMCEHelper.initTinyMCE({
+                        selector: 'textarea#nutrition-facts',
+                        height: 200,
+                        width: "100%",
+                        plugins: 'image imagetools media wordcount save fullscreen code table lists link hr',
+                        toolbar1: 'formatselect | bold italic strikethrough forecolor backcolor link hr | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent  | removeformat | code | table',
+                        uploadRoute: '{{ route('admin.tinymce.upload') }}',
+                        csrfToken: '{{ csrf_token() }}',
+                    });
+                });
+            },
+        });
+    </script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 @endpush

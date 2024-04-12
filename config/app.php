@@ -268,6 +268,7 @@ return [
         Webkul\Product\Providers\ProductServiceProvider::class,
         Webkul\Recipe\Providers\RecipeServiceProvider::class,
         Webkul\Tag\Providers\TagServiceProvider::class,
+        Webkul\Topic\Providers\TopicServiceProvider::class,
         Webkul\Checkout\Providers\CheckoutServiceProvider::class,
         Webkul\Shipping\Providers\ShippingServiceProvider::class,
         Webkul\Payment\Providers\PaymentServiceProvider::class,

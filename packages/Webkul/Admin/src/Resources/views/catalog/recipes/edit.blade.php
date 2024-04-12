@@ -22,6 +22,14 @@
         .d-block {
             display: block!important;
         }
+        .image-fit {
+            object-fit: cover;
+        }
+        .image-wrapper .image-item {
+            width: 250px;
+            height: 250px;
+            cursor: pointer;
+        }
     </style>
 @stop
 
@@ -145,15 +153,11 @@
                             </select>
                         </div>
 
-
-
                         <div class="control-group" :class="[errors.has('products') ? 'has-error' : '']">
                             <label for="products" style="margin-bottom:1rem;">{{ __('admin::app.catalog.recipes.related-products') }}</label>
                             <select class="js-example-basic-multiple control" style="width:300px; margin-top:2rem;" name="products[]" multiple="multiple">
                             </select>
                         </div>
-
-
 
                         {{--@foreach ($allLocales as $locale)
                             <div class="control-group">
@@ -163,16 +167,54 @@
                         @endforeach--}}
 
                         <div class="control-group">
-                            <label>{{ __('admin::app.catalog.recipes.image') }}</label>
+                            <label>{{ __('admin::app.catalog.recipes.image-desktop') }}</label>
                             <div class="image-wrapper">
                                 <label for="10" class="image-item {{isset($recipe->translate($locale)->image_desktop)? 'has-image': ''}}">
                                     <input type="hidden" name="image_desktop[image_0]">
                                     <input type="file" accept="image/*" name="image_desktop[image_0]" id="10" aria-required="false" aria-invalid="false">
                                     @if(isset($recipe->translate($locale)->image_desktop))
-                                        <img src="{{ asset('storage/recipe/' . $recipe->id . '_' . $recipe->id . '/' .$recipe->translate($locale)->image_desktop) }}" class="preview">
+                                        <img src="{{ asset('storage/recipe/' . $recipe->id . '_' . $recipe->id . '/' .$recipe->translate($locale)->image_desktop) }}" class="preview image-fit">
                                     @endif
                                     <label class="remove-image">Remove Image</label>
                                 </label>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label>{{ __('admin::app.catalog.recipes.image-mobile') }}</label>
+                            <div class="image-wrapper">
+                                <label for="10" class="image-item {{isset($recipe->translate($locale)->image_mobile)? 'has-image': ''}}">
+                                    <input type="hidden" name="image_mobile[image_0]">
+                                    <input type="file" accept="image/*" name="image_mobile[image_0]" id="10" aria-required="false" aria-invalid="false">
+                                    @if(isset($recipe->translate($locale)->image_mobile))
+                                        <img src="{{ asset('storage/recipe/' . $recipe->id . '_' . $recipe->id . '/' .$recipe->translate($locale)->image_mobile) }}" class="preview image-fit">
+                                    @endif
+                                    <label class="remove-image">Remove Image</label>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="control-group" :class="[errors.has('video_link') ? 'has-error' : '']">
+                            <label for="{{$locale}}[video_link]">{{ __('admin::app.catalog.recipes.video-link') }}</label>
+                            <input type="text" class="control" id="{{$locale}}[video_link]" name="{{$locale}}[video_link]" value="{{ old($locale)['video_link'] ?? ($recipe->translate($locale)['video_link'] ?? '') }}" data-vv-as="&quot;{{ __('admin::app.catalog.recipes.cooking-time') }}&quot;"/>
+                            <span class="control-error" v-if="errors.has('video_link')">@{{ errors.first('video_link') }}</span>
+                        </div>
+
+                        <div class="control-group {!! $errors->has('videos.*') ? 'has-error' : '' !!}">
+                            <label>{{ __('admin::app.catalog.products.video') }} (Click to update Video)</label>
+                            <div class="image-wrapper" style="display:flex; flex-direction: column;">
+                                <label style="cursor: pointer;" class="image-item {{isset($recipe->translate($locale)['video']) ? 'has-image' : '' }}">
+                                    <input type="hidden" name="{{$locale}}[video]"/>
+
+                                    <input type="file"  accept="video/*" name="{{$locale}}[video]" id="recipe-video" ref="videoInput"/>
+                                    <video class="preview {{!isset($recipe->translate($locale)['video']) ? 'd-none' : 'd-block'}}" width="200" height="160" controls>
+                                        <source src="{{isset($recipe->translate($locale)['video']) ? 
+                                            asset('storage/' . $recipe->translate($locale)['video']) : ''
+                                        }}" type="video/mp4">
+                                        {{ __('admin::app.catalog.products.not-support-video') }}
+                                    </video>
+                                </label>
+                                <!-- <label class="btn btn-lg btn-primary add-video" style="display: inline-block; width: 20%; text-align: center;">Add Video</label> -->
                             </div>
                         </div>
 
@@ -185,6 +227,20 @@
                             <label for="recipe_card_decsription">{{ __('admin::app.catalog.recipes.description') }}</label>
                             <textarea class="control" id="recipe_card_decsription" name="{{$locale}}[recipe_card][decsription]">{{ old($locale)['recipe_card']['description'] ?? ($recipe->translate($locale)['recipe_card']['description'] ?? '') }}</textarea>
                             <span class="control-error" v-if="errors.has('recipe_card')">@{{ errors.first('recipe_card') }}</span>
+                        </div>
+
+                        <div class="control-group">
+                            <label>{{ __('admin::app.catalog.recipes.image') }}</label>
+                            <div class="image-wrapper">
+                                <label for="10" class="image-item {{isset($recipe->translate($locale)['recipe_card']['image'])? 'has-image': ''}}">
+                                    <input type="hidden" name="{{$locale}}[recipe_card][image]">
+                                    <input type="file" accept="image/*" name="{{$locale}}[recipe_card][image]" id="10" aria-required="false" aria-invalid="false">
+                                    @if(isset($recipe->translate($locale)['recipe_card']['image']))
+                                        <img src="{{ asset('storage/recipe/' . $recipe->id . '_' . $recipe->id . '/recipe_card//' .$recipe->translate($locale)['recipe_card']['image']) }}" class="preview image-fit">
+                                    @endif
+                                    <label class="remove-image">Remove Image</label>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </accordian>
@@ -232,7 +288,56 @@
                                 </div>
                             @endforeach
                         </div>
+
                         <label class="btn btn-lg btn-primary add-ingredient" style="display: inline-block; width: auto;">Add Ingredient</label>
+                        <br>
+                        <br>
+
+                        <hr>
+
+                        <div class="control-group extra-ingredients-container" :class="[errors.has('extra_ingredients') ? 'has-error' : '']">
+                            @php
+                                $translated_extra_ingredients = $recipe->translate($locale)["extra_ingredients"];
+                            @endphp
+                            @isset($translated_extra_ingredients)
+                                <div class="extra-ingredient-sub-container" data-id="">
+                                    <label class="input-label extra-section-label" for="extra_ingredients"><b>Extra {{ __('admin::app.catalog.recipes.ingredient') }} #1</b></label>
+                                    <br>
+                                    <label class="input-label" for="extra_title">Title</label>
+                                    <input type="text" class="control" value="{{$translated_extra_ingredients['title']}}" name="{{$locale}}[extra_ingredients][title]">
+                                    @foreach($translated_extra_ingredients['ingredient'] as $ing)
+                                        <span class="extra-ingredient-repeated">
+                                            <label class="input-label extra-ingredient-label" for="extra_title">Ingredient </label>
+                                            <input type="text" style="margin-bottom: 1rem;" class="control" id="ingredient"
+                                                name="{{$locale}}[extra_ingredients][ingredient][]"
+                                                value="{{ $ing }}"/>
+                                            <img class="remove-extra-ingredient-btn" style="display: inline-block; width: 20px; cursor:pointer;" src="{{asset('images/trash.png')}}" />
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endisset
+                            @if(is_null($translated_extra_ingredients))
+                                <div class="extra-ingredient-sub-container new-extra-ingredient-container">
+                                    <label class="input-label extra-section-label" for="extra_ingredients"><b>Extra {{ __('admin::app.catalog.recipes.ingredient') }} #1</b></label>
+                                    <br>
+
+                                    <label class="input-label" for="extra_title">Title</label>
+                                    <input type="text" class="control" name="{{$locale}}[extra_ingredients][title]">
+                                    <br><br>
+                                    <span class="extra-ingredient-repeated">
+                                        <label class="input-label extra-ingredient-label" for="extra_title">Ingredient </label>
+                                        <input type="text" style="margin-bottom: 1rem;" class="control extra-ingredient-value" id="ingredient"
+                                                name="{{$locale}}[extra_ingredients][ingredient][]"/>
+                                        <img class="remove-extra-ingredient-btn" style="display: inline-block; width: 20px; cursor:pointer;" src="{{asset('images/trash.png')}}" />
+                                    </span>
+                                </div>
+                            @endif
+                            <br>
+                            <label class="btn btn-lg btn-primary add-extra-ingredient" style="display: inline-block; width: auto;">Add Ingredient</label>
+
+                        </div>
+                        
+                        <label class="btn btn-lg btn-primary add-extra-ingredient-component" style="display: inline-block; width: auto;">Add Extra Ingredient Component</label>
 
                         {!! view_render_event('bagisto.admin.catalog.product.create_form_accordian.general.controls.after') !!}
 
@@ -286,33 +391,63 @@
                     </div>
                 </accordian>
 
+                <accordian :title="'{{ __('admin::app.catalog.recipes.topic') }}'" :active="true">
+                    <div slot="body">
+                        <div class="control-group existing-topic-container" :class="[errors.has('topics') ? 'has-error' : '']">
+                            <label for="topic_id" style="margin-bottom:1rem;">{{ __('admin::app.catalog.recipes.select-topic') }}</label>
+                            <select class="js-single-topic control" style="width:300px; margin-top:1rem;" name="topic_id">
+                                @isset($recipe->topic)
+                                    <option selected value="{{$recipe->topic->id}}"> {{$recipe->topic->name}} </option>
+                                @endisset
+                            </select>
+                        </div>
+                        
+                        <div class="control-group new-topic-container d-none" data-id="0">
+                            <label class="input-label" for="topic">New {{ __('admin::app.catalog.recipes.topic') }}</label>
+                            <input type="text" style="margin-bottom: 1rem;" class="control" id="topic" name="new_topic" data-vv-as="&quot;{{ __('admin::app.catalog.recipes.topic') }}&quot;"/>
+                            <span class="control-error" v-if="errors.has('topic')">@{{ errors.first('topic') }}</span>
+                            <!-- <img class="remove-topic-btn" style="display: inline-block; width: 20px; cursor:pointer;" src="{{asset('images/trash.png')}}" /> -->
+                        </div>
+
+                        <label class="btn btn-lg btn-primary add-topic" style="display: inline-block; width: auto;">Add New Topic</label>
+                        <label class="btn btn-lg btn-primary select-topic" style="display: inline-block; width: auto;">Select Existing Topic</label>
+
+                    </div>
+                </accordian>
+
 
                 <accordian :title="'{{ __('admin::app.catalog.recipes.seo') }}'" :active="true">
                     <div slot="body">
 
                         {!! view_render_event('bagisto.admin.catalog.recipe.create_form_accordian.general.controls.before') !!}
 
-                        <div class="control-group" :class="[errors.has('seo_title') ? 'has-error' : '']">
-                            <label for="seo_title">{{ __('admin::app.catalog.recipes.meta_title') }}</label>
-                            <input type="text" class="control" id="seo_title" name="seo_title" value="{{ old($locale)['seo_title'] ?? ($recipe->translate($locale)['seo']['title'] ?? '') }}" data-vv-as="&quot;{{ __('admin::app.catalog.recipes.meta_title') }}&quot;"/>
-                            <span class="control-error" v-if="errors.has('seo_title')">@{{ errors.first('seo_title') }}</span>
+                        <div class="control-group">
+                            <label for="{{$locale}}['seo']['title']">{{ __('admin::app.catalog.recipes.meta_title') }}</label>
+                            <input type="text" class="control" 
+                                id="{{$locale}}[seo][title]"
+                                name="{{$locale}}[seo][title]"
+                                value="{{ old($locale)['seo']['title'] ?? ($recipe->translate($locale)['seo']['title'] ?? '') }}"/>
                         </div>
 
-                        <div class="control-group" :class="[errors.has('seo_desc') ? 'has-error' : '']">
-                            <label for="seo_desc">{{ __('admin::app.catalog.recipes.meta_description') }}</label>
-                            <input type="text" class="control" id="seo_desc" name="seo_desc" value="{{ old($locale)['seo_desc'] ?? ($recipe->translate($locale)['seo']['description'] ?? '') }}" data-vv-as="&quot;{{ __('admin::app.catalog.recipes.meta_description') }}&quot;"/>
-                            <span class="control-error" v-if="errors.has('seo_desc')">@{{ errors.first('seo_desc') }}</span>
+                        <div class="control-group">
+                            <label for="{{$locale}}[seo][description]">{{ __('admin::app.catalog.recipes.meta_description') }}</label>
+                            <input type="text" class="control"
+                                id="{{$locale}}[seo][description]"
+                                name="{{$locale}}[seo][description]"
+                                value="{{ old($locale)['seo']['description'] ?? ($recipe->translate($locale)['seo']['description'] ?? '') }}"/>
                         </div>
 
-                        <div class="control-group" :class="[errors.has('seo_keywords') ? 'has-error' : '']">
-                            <label for="seo_keywords">{{ __('admin::app.catalog.recipes.meta_keywords') }}</label>
-                            <input type="text" class="control" id="seo_keywords" name="seo_keywords" value="{{ old($locale)['seo_keywords'] ?? ($recipe->translate($locale)['seo']['keywords'] ?? '') }}" data-vv-as="&quot;{{ __('admin::app.catalog.recipes.meta_keywords') }}&quot;"/>
-                            <span class="control-error" v-if="errors.has('seo_keywords')">@{{ errors.first('seo_keywords') }}</span>
+                        <div class="control-group">
+                            <label for="{{$locale}}[seo][keywords]">{{ __('admin::app.catalog.recipes.meta_keywords') }}</label>
+                            <input type="text" class="control"
+                                id="{{$locale}}[seo][keywords]"
+                                name="{{$locale}}[seo][keywords]"
+                                value="{{ old($locale)['seo']['keywords'] ?? ($recipe->translate($locale)['seo']['keywords'] ?? '') }}"/>
                         </div>
 
                         <div class="control-group">
                             <label>{{ __('admin::app.catalog.recipes.image') }}</label>
-                            <image-wrapper input-name="seo_image" :multiple="false"></image-wrapper>
+                            <image-wrapper input-name="{{$locale}}[seo][image]" :multiple="false"></image-wrapper>
                         </div>
 
                         {!! view_render_event('bagisto.admin.catalog.recipe.create_form_accordian.general.controls.after') !!}
@@ -385,6 +520,29 @@
                 last.appendTo(".ingredients-container");
             });
 
+            $("label.add-extra-ingredient").on("click", function (e) {
+                let lastIndex = $('.extra-ingredient-repeated').length;
+                let last = $(".extra-ingredient-repeated:last").clone();
+                last.find("input").val("");
+                last.find("img").on("click", function (e) {
+                    $(this).parent().remove(); 
+                });
+                last.appendTo(".new-extra-ingredient-container");
+            });
+
+            $("label.add-extra-ingredient-component").on("click", function (e) {
+                let lastIndex = $('.extra-ingredient-sub-container').length + 1;
+                let last = $(".extra-ingredient-sub-container:last").clone();
+                last.find("input").val("");
+                last.find("label.extra-section-label").html("<b> Extra Ingredient #" + lastIndex + "</b>");
+                last.find("img").on("click", function (e) {
+                    $(this).parent().remove(); 
+                });
+                let hr = document.createElement("hr");
+                $(".extra-ingredients-container").append(hr);
+                last.appendTo(".extra-ingredients-container");
+            });
+
             $("img.remove-tag-btn").on("click", function (e) {
                 let length = $('.tag-container').length;
                 if (length > 1) {
@@ -422,6 +580,25 @@
                 $('.existing-tags').addClass('d-block');
             });
 
+
+            $("label.add-topic").on("click", function (e) {
+                let wasHidden = false;
+                if ($('.new-topic-container').hasClass('d-none')) {
+                    wasHidden = true;
+                    $('.new-topic-container').removeClass('d-none');
+                    $('.new-topic-container').addClass('d-block');
+                    $('.existing-topic-container').removeClass('d-block');
+                    $('.existing-topic-container').addClass('d-none');
+                }
+            });
+
+            $("label.select-topic").on("click", function (e) {
+                $('.new-topic-container').removeClass('d-block');
+                $('.new-topic-container').addClass('d-none');
+                $('.existing-topic-container').removeClass('d-none');
+                $('.existing-topic-container').addClass('d-block');
+            });
+
             tinyMCEHelper.initTinyMCE({
                 selector: 'textarea#description, textarea#short_description',
                 height: 200,
@@ -453,7 +630,7 @@
                         // Transforms the top-level key of the response object from 'items' to 'results'
                         return {
                             results: data.data.map(d => {
-                                return {id: d.id, text: d.name}
+                                return {id: d.id, text:  `${d.category ?? ''} - ${d.name}`}
                             })
                         };
                     }
@@ -481,7 +658,7 @@
                         // Transforms the top-level key of the response object from 'items' to 'results'
                         return {
                             results: data.data.map(d => {
-                                return {id: d.id, text: d.name}
+                                return {id: d.id, text:  `${d.category ?? ''} - ${d.name}`}
                             })
                         };
                     }
@@ -516,7 +693,44 @@
                     }
                 }
             });
+
+
+            $('.js-single-topic').select2({
+                placeholder: 'Select a topic',
+                tags: true,
+                ajax: {
+                    url: `${base_url}/api/topics`,
+                    delay: 250,
+                    data: function (params) {
+                        var query = {
+                            name: params.term,
+                            limit: 10
+                        }
+
+                        // Query parameters will be ?search=[term]&type=public
+                        return query;
+                    },
+                    processResults: function (data) {
+                        // Transforms the top-level key of the response object from 'items' to 'results'
+                        return {
+                            results: data.data.map(d => {
+                                return {id: d.id, text: d.name}
+                            })
+                        };
+                    }
+                }
+            });
+
+
+            document.getElementById("recipe-video").onchange = function(event) {
+                let file = event.target.files[0];
+                let blobURL = URL.createObjectURL(file);
+                document.querySelector("video").src = blobURL;
+                $("video").removeClass("d-none");
+            }
         }); 
+
+
     </script>
 
     {{-- <!-- <script type="text/x-template" id="instructions-template">

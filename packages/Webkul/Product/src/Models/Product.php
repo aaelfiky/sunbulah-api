@@ -39,7 +39,9 @@ class Product extends Model implements ProductContract
 
     protected $appends = [
         'weight_label',
-        'stock'
+        'stock',
+        'category',
+        'nutrition_facts'
     ];
 
     /**
@@ -113,6 +115,11 @@ class Product extends Model implements ProductContract
         return $this->hasMany(ProductFlatProxy::modelClass(), 'product_id');
     }
 
+
+    public function getNutritionFactsAttribute() {
+        return optional($this->product_flats()->where('locale', core()->getRequestedLocaleCode())->first())->nutrition_facts;
+    }
+
     /**
      * Get the product variants that owns the product.
      */
@@ -143,6 +150,13 @@ class Product extends Model implements ProductContract
     public function categories()
     {
         return $this->belongsToMany(CategoryProxy::modelClass(), 'product_categories');
+    }
+
+    /**
+     * The main category that belong to the product.
+     */
+    public function getCategoryAttribute() {
+        return optional($this->categories()->first())->name;
     }
 
     /**

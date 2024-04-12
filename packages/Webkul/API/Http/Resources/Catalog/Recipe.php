@@ -34,7 +34,8 @@ class Recipe extends JsonResource
             'seo'                => $this->seo,
             'author'             => $this->author,
             'tags'               => $this->tags,
-            'products'           => $this->products
+            'products'           => $this->products,
+            'similarRecipes'     => $this->similar_recipes
         ];
     }
 }

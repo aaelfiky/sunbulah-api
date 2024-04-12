@@ -89,6 +89,11 @@ class ProductRepository extends Repository
 
         $product = $product->getTypeInstance()->update($data, $id, $attribute);
 
+        if (isset($data["nutrition_facts"])) {
+            $locale = core()->getRequestedLocaleCode();
+            DB::update('update product_flat set nutrition_facts = ? where product_id = ? and locale = ?', [$data["nutrition_facts"], $id, $locale]);
+        }
+
         if (isset($data['channels'])) {
             $product['channels'] = $data['channels'];
         }
@@ -161,6 +166,10 @@ class ProductRepository extends Repository
                 ->where('product_flat.channel', $channel)
                 ->where('product_flat.locale', $locale);
                 // ->whereNotNull('product_flat.url_key');
+
+            if (isset($params["type"]) && $params["type"] == 'simple') {
+                $qb->whereNull('product_flat.parent_id');
+            }
 
             if ($categoryId) {
                 $qb->whereIn('product_categories.category_id', explode(',', $categoryId));
@@ -519,6 +528,35 @@ class ProductRepository extends Repository
         }
 
         return $superAttrbutes;
+    }
+
+
+    /**
+     * Returns product's super attribute with options
+     *
+     * @param \Webkul\Product\Contracts\Product $product
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getMainAttributes($product)
+    {
+        $mainAttributes = [];
+
+        $attrs = Attribute::where('is_main_attribute', true)->get();
+        foreach ($attrs as $key => $attribute) {
+            $mainAttributes[$key] = $attribute->toArray();
+
+            foreach ($attribute->options as $option) {
+                $mainAttributes[$key]['options'][] = [
+                    'id'           => $option->id,
+                    'admin_name'   => $option->admin_name,
+                    'sort_order'   => $option->sort_order,
+                    'swatch_value' => $option->swatch_value,
+                ];
+            }
+        }
+
+        return $mainAttributes;
     }
 
     /**

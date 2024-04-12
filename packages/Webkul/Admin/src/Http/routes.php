@@ -298,6 +298,10 @@ Route::group(['middleware' => ['web', 'admin_locale']], function () {
                     'redirect' => 'admin.catalog.products.edit',
                 ])->name('admin.catalog.products.store');
 
+                Route::post('/products/{id}/variant', 'Webkul\Product\Http\Controllers\ProductController@addVariant')->defaults('_config', [
+                    'redirect' => 'admin.catalog.products.edit',
+                ])->name('admin.catalog.products.variant.add');
+
                 Route::get('products/copy/{id}', 'Webkul\Product\Http\Controllers\ProductController@copy')->defaults('_config', [
                     'view' => 'admin::catalog.products.edit',
                 ])->name('admin.catalog.products.copy');

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Webkul\Product\Models\Product;
 use Webkul\Tag\Models\Tag;
 use Webkul\Product\Models\ProductProxy;
+use Webkul\Topic\Models\TopicProxy;
 use Webkul\Recipe\Contracts\Recipe as RecipeContract;
 
 class Recipe extends TranslatableModel implements RecipeContract
@@ -37,6 +38,8 @@ class Recipe extends TranslatableModel implements RecipeContract
         'seo'
     ];
 
+    protected $appends = ["similar_recipes"];
+
     // Relation with Tags 
 
     // Relation with Ratings 
@@ -64,6 +67,23 @@ class Recipe extends TranslatableModel implements RecipeContract
     public function product()
     {
         return $this->belongsTo(ProductProxy::modelClass(), 'main_product_id');
+    }
+
+    /**
+     * Get the product that owns the image.
+     */
+    public function topic()
+    {
+        return $this->belongsTo(TopicProxy::modelClass(), 'topic_id');
+    }
+
+
+    public function getSimilarRecipesAttribute()
+    {
+        return RecipeTranslation::where([
+            "locale" => core()->getRequestedLocaleCode(),
+            'main_product_id' => $this->product->id
+        ])->get();
     }
 
     // Relation with Topics

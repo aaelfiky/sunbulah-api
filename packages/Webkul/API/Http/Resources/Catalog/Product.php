@@ -50,6 +50,7 @@ class Product extends JsonResource
             'images'                 => ProductImage::collection($product->images),
             'videos'                 => ProductVideo::collection($product->videos),
             'base_image'             => ProductImageFacade::getProductBaseImage($product),
+            'category'               => $product->category,
             'created_at'             => $product->created_at,
             'updated_at'             => $product->updated_at,
 

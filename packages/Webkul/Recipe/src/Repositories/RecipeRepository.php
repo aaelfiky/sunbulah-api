@@ -10,6 +10,8 @@ use Webkul\Recipe\Models\Recipe;
 use Webkul\Product\Models\Product;
 use Webkul\Tag\Models\Tag;
 use Webkul\Tag\Models\TagTranslation;
+use Webkul\Topic\Models\Topic;
+use Webkul\Topic\Models\TopicTranslation;
 use Illuminate\Pagination\Paginator;
 use Webkul\Core\Eloquent\Repository;
 use Illuminate\Support\Facades\Event;
@@ -127,7 +129,6 @@ class RecipeRepository extends Repository
         $_model = app()->make($this->model());
 
         $fillable = $_model->translatedAttributes;
-        $data[$locale] = array_intersect_key($data, array_flip($fillable));
 
         $new_tags = $data["new_tags"];
 
@@ -158,19 +159,32 @@ class RecipeRepository extends Repository
             unset($data["tags"]);
         }
 
-        unset($data["locale"]); 
-        unset($data["seo_title"]);
-        unset($data["seo_desc"]);
-        unset($data["seo_image"]);
-        unset($data["seo_keywords"]);
-        unset($data["products"]);
+        $new_topic = $data["new_topic"];
 
-        $data[$locale]["seo"] = [
-            "title" => $data["seo_title"] ?? "",
-            "description" => $data["seo_desc"] ?? "",
-            "image" => $data["seo_image"] ?? "",
-            "keywords" => $data["seo_keywords"] ?? ""
-        ];
+        if (isset($new_topic) && strlen($new_topic) > 0) {
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $new_topic)));
+            $created = Topic::create(["slug" => $slug]);
+            $translation = TopicTranslation::create([
+                "name" => $new_topic,
+                "locale" => $locale,
+                "topic_id" => $created->id
+            ]);
+
+            $recipe->topic_id = $created->id;
+            $recipe->save();
+        }
+
+        if (isset($data["topic_id"]) && strlen($data["topic_id"]) > 0)
+        {
+            $recipe->topic_id = $data["topic_id"];
+            $recipe->save();
+        }
+
+
+        unset($data["topic_id"]);
+        unset($data["new_topic"]);
+        unset($data["locale"]); 
+        unset($data["products"]);
 
         if (isset($data["image_desktop"]) && count($data["image_desktop"]) > 0 && strlen($data["image_desktop"]["image_0"]) == 0) {
             unset($data["image_desktop"]);
@@ -180,11 +194,29 @@ class RecipeRepository extends Repository
             unset($data[$locale]["image_desktop"]);
         }
 
+        if (isset($data["image_mobile"]) && count($data["image_mobile"]) > 0 && strlen($data["image_mobile"]["image_0"]) == 0) {
+            unset($data["image_mobile"]);
+        }
+
+        if (isset($data[$locale]["image_mobile"]) && count($data[$locale]["image_mobile"]) > 0 && strlen($data[$locale]["image_mobile"]["image_0"]) == 0) {
+            unset($data[$locale]["image_mobile"]);
+        }
+
+        if (isset($data[$locale]["video"]) && strlen($data[$locale]["video"]) == 0) {
+            unset($data[$locale]["video"]);
+        }
+
+        if (isset($data[$locale]["recipe_card"]["image"]) && strlen($data[$locale]["recipe_card"]["image"]) == 0) {
+            unset($data[$locale]["recipe_card"]["image"]);
+        }
+
         $recipe->update($data);
 
         DB::update('update recipes set slug = ? where id = ?', [$data["slug"], $id]);
 
         $this->uploadImages($data, $recipe);
+        if (isset($data[$locale]["video"]))
+            $this->uploadVideo($data[$locale]["video"], $recipe);
 
         Event::dispatch('catalog.recipe.update.after', $id);
 
@@ -216,6 +248,7 @@ class RecipeRepository extends Repository
         $recipe = $this->model->whereTranslation('slug', $slug)->first();
 
         if ($recipe) {
+            $recipe->similar_recipes = $this->model->whereTranslation('main_product_id', $recipe->main_product_id)->get();
             return $recipe;
         }
 
@@ -284,6 +317,38 @@ class RecipeRepository extends Repository
 
             // $recipe_translation->{$type} = null;
             // $recipe_translation->save();
+        }
+    }
+
+     /**
+     * Upload recipe's images.
+     *
+     * @param  array  $data
+     * @param  \Webkul\Recipe\Contracts\Recipe  $recipe
+     * @return void
+     */
+    public function uploadVideo($data, $recipe, $locale = "en")
+    {
+        $recipe_translation = RecipeTranslation::firstOrCreate([
+            "locale" => $locale,
+            "recipe_id" => $recipe->id
+        ]);
+        
+        if (isset($data)) {
+            $request = request();
+            
+            $file = "$locale.".'video';
+            $dir = 'videos/recipes/' . $recipe->id . '_' . $recipe_translation->id;
+            
+            if ($request->hasFile($file)) {
+                if ($recipe_translation->video) {
+                    Storage::delete($recipe_translation->video);
+                }
+
+                $custom_file_name = 'video_' . $recipe->id . '.' . $request->file($file)->getClientOriginalExtension();
+                $recipe_translation->video = $request->file($file)->storeAs($dir, $custom_file_name);
+                $recipe_translation->save();
+            }
         }
     }
 

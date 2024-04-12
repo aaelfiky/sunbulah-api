@@ -3,6 +3,7 @@
 namespace Webkul\Product\Http\Controllers;
 
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Webkul\Attribute\Repositories\AttributeFamilyRepository;
@@ -12,11 +13,13 @@ use Webkul\Inventory\Repositories\InventorySourceRepository;
 use Webkul\Product\Helpers\ProductType;
 use Webkul\Product\Http\Requests\ProductForm;
 use Webkul\Product\Models\Product;
+use Webkul\Product\Models\ProductFlat;
 use Webkul\Product\Repositories\ProductAttributeValueRepository;
 use Webkul\Product\Repositories\ProductDownloadableLinkRepository;
 use Webkul\Product\Repositories\ProductDownloadableSampleRepository;
 use Webkul\Product\Repositories\ProductInventoryRepository;
 use Webkul\Product\Repositories\ProductRepository;
+Use \Carbon\Carbon;
 
 class ProductController extends Controller
 {
@@ -191,6 +194,39 @@ class ProductController extends Controller
     }
 
     /**
+     * Store a newly created resource in storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function addVariant($id)
+    {
+        $variant_id = request()->get('variant_id');
+
+        $product_id = $id;
+
+        if (is_null($product_id) || is_null($variant_id)) {
+            session()->flash('error', "Failed to add variant to product");
+            return back();
+        }
+
+        $productFlatConfigurable = ProductFlat::firstWhere(['locale' => core()->getRequestedLocaleCode(), 'product_id' => $id]);
+        $productFlatSimpleVariant = ProductFlat::firstWhere(['locale' => core()->getRequestedLocaleCode(), 'product_id' => $variant_id]);
+
+        if (is_null($productFlatConfigurable)) {
+            session()->flash('error', "Failed to add variant to product");
+            return back();
+        }
+
+        DB::update('update product_flat set parent_id = ?, updated_at = ? where product_id = ? and locale = ?', [$productFlatConfigurable->id, Carbon::now(), $variant_id, core()->getRequestedLocaleCode()]);
+
+        DB::update('update products set parent_id = ?, updated_at = ? where id = ?', [$id, Carbon::now(), $productFlatSimpleVariant->product_id]);
+
+        session()->flash('success', trans('admin::app.response.create-success', ['name' => 'Product']));
+
+        return redirect()->route($this->_config['redirect'], ['id' => $id]);
+    }
+
+    /**
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
@@ -243,6 +279,12 @@ class ProductController extends Controller
         }
 
         $this->productRepository->update($data, $id);
+
+        if (($data["product_type"] == 1 || $data["product_type"] == "1")) {
+            DB::update('update products set type = ? where id = ?', ["configurable", $id]);
+        } else {
+            DB::update('update products set type = ? where id = ?', ["simple", $id]);
+        }
 
         session()->flash('success', trans('admin::app.response.update-success', ['name' => 'Product']));
 

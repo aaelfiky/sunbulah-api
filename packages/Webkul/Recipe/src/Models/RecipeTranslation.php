@@ -18,6 +18,7 @@ class RecipeTranslation extends Model
         'seo' => 'json',
         'instructions' => 'array',
         'ingredients' => 'array',
+        'extra_ingredients' => 'json',
         'tags' => 'array',
         'author' => 'json',
         'recipe_card' => 'json'

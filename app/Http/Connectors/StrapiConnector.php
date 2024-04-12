@@ -308,7 +308,7 @@ class StrapiConnector {
                     "name" => $strapi_recipe["RecipeCard"]["image"]["name"],
                     "url" => $strapi_recipe["RecipeCard"]["image"]["url"]
                 ];
-                // self::uploadImage($recipe_card_image, $_recipe, "recipe_card/");
+                self::uploadImage($recipe_card_image, $_recipe, "recipe_card/");
             }
             $recipe_card = [
                 "description" => $strapi_recipe["RecipeCard"]["description"],

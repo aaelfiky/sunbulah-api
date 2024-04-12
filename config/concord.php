@@ -30,6 +30,7 @@ return [
         \Webkul\Product\Providers\ModuleServiceProvider::class,
         \Webkul\Recipe\Providers\ModuleServiceProvider::class,
         \Webkul\Tag\Providers\ModuleServiceProvider::class,
+        \Webkul\Topic\Providers\ModuleServiceProvider::class,
         \Webkul\Rule\Providers\ModuleServiceProvider::class,
         \Webkul\Sales\Providers\ModuleServiceProvider::class,
         \Webkul\Shipping\Providers\ModuleServiceProvider::class,

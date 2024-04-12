@@ -1,7 +1,12 @@
 @section('css')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     @parent
 
     <style>
+        .select2-search__field {
+            font-family: 'Montserrat,sans-serif' !important;
+        }
+
         .table th.price, .table th.weight {
             width: 100px;
         }
@@ -61,19 +66,29 @@
 @push('scripts')
     @parent
 
-    <script type="text/x-template" id="variant-form-template">
-        <form method="POST" action="{{ route('admin.catalog.products.store') }}"
-              data-vv-scope="add-variant-form" @submit.prevent="addVariant('add-variant-form')">
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+    <!-- @submit.prevent="addVariant('add-variant-form')" -->
+    <script type="text/x-template" id="variant-form-template">
+        <form method="POST" action="{{ route('admin.catalog.products.variant.add', ['id' => $product->id ]) }}"
+              data-vv-scope="add-variant-form">
+
+              @csrf()
             <div class="page-content">
                 <div class="form-container">
-
-                    <div v-for='(attribute, index) in super_attributes' class="control-group"
+                    <div v-for='(attribute, index) in main_attributes' class="control-group"
                         :class="[errors.has('add-variant-form.' + attribute.code) ? 'has-error' : '']"
                     >
-                        <label :for="attribute.code" class="required">@{{ attribute.admin_name
-                            }}</label>
-                        <select
+                        <label :for="attribute.code" class="required">@{{ attribute.admin_name }}</label>
+                        
+                        <select v-if="attribute.code == 'sku'"
+                            class="js-variant-product control"
+                            style="width:300px; margin-top:1rem;" 
+                            name="variant_id">
+                        </select>
+
+                        <!-- <select
+                            v-else
                             v-validate="'required'"
                             v-model="variant[attribute.code]"
                             class="control"
@@ -84,7 +99,7 @@
                             <option v-for='(option, index) in attribute.options' :value="option.id">
                                 @{{ option.admin_name }}
                             </option>
-                        </select>
+                        </select> -->
                         <span class="control-error"
                             v-if="errors.has('add-variant-form.' + attribute.code)">@{{ errors.first('add-variant-form.' + attribute.code) }}</span>
                     </div>
@@ -271,8 +286,11 @@
             ];
         });
 
+        let main_attributes = @json(app('\Webkul\Product\Repositories\ProductRepository')->getMainAttributes($product));
         let super_attributes = @json(app('\Webkul\Product\Repositories\ProductRepository')->getSuperAttributes($product));
         let variants = @json($product->variants);
+
+        console.log(variants);
 
         Vue.component('variant-form', {
             data: function () {
@@ -283,6 +301,38 @@
             },
 
             template: '#variant-form-template',
+
+            mounted() {
+                var base_url = window.location.origin;
+
+                $('.js-variant-product').select2({
+                    placeholder: 'Select a SKU',
+                    tags: true,
+                    ajax: {
+                        url: `${base_url}/api/products`,
+                        delay: 250,
+                        data: function (params) {
+                            var query = {
+                                name: params.term,
+                                type: "simple",
+                                parent_id: -1,
+                                limit: 10
+                            }
+
+                            // Query parameters will be ?search=[term]&type=public
+                            return query;
+                        },
+                        processResults: function (data) {
+                            // Transforms the top-level key of the response object from 'items' to 'results'
+                            return {
+                                results: data.data.map(d => {
+                                    return {id: d.id, text:  `${d.category ?? ''} - ${d.name}`}
+                                })
+                            };
+                        }
+                    }
+                });
+            },
 
             created: function () {
                 this.resetModel();
@@ -479,11 +529,13 @@
                     let optionName = '';
 
                     this.superAttributes.forEach(function (attribute) {
-                        attribute.options.forEach(function (option) {
-                            if (optionId == option.id) {
-                                optionName = option.admin_name;
-                            }
-                        });
+                        if (attribute.options) {
+                            attribute.options.forEach(function (option) {
+                                if (optionId == option.id) {
+                                    optionName = option.admin_name;
+                                }
+                            });
+                        }
                     })
 
                     return optionName;
@@ -558,5 +610,9 @@
                 },
             }
         });
+        
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 @endpush

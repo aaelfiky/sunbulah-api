@@ -96,6 +96,7 @@
             "Webkul\\Product\\": "packages/Webkul/Product/src",
             "Webkul\\Recipe\\": "packages/Webkul/Recipe/src",
             "Webkul\\Tag\\": "packages/Webkul/Tag/src",
+            "Webkul\\Topic\\": "packages/Webkul/Topic/src",
             "Webkul\\Theme\\": "packages/Webkul/Theme/src",
             "Webkul\\Shipping\\": "packages/Webkul/Shipping/src",
             "Webkul\\Payment\\": "packages/Webkul/Payment/src",

@@ -2,11 +2,14 @@
 
 namespace Webkul\Attribute\Models;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Webkul\Core\Eloquent\TranslatableModel;
 use Webkul\Attribute\Contracts\Attribute as AttributeContract;
 
 class Attribute extends TranslatableModel implements AttributeContract
 {
+    use SoftDeletes;
+    
     public $translatedAttributes = ['name'];
 
     protected $fillable = [

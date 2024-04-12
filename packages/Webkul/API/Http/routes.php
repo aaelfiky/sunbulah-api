@@ -71,6 +71,8 @@ Route::group(['prefix' => 'api'], function ($router) {
         // Route::get('recipes/{id}', 'RecipeController@get');
         Route::get('/tags', 'TagController@index');
 
+        Route::get('/topics', 'TopicController@index');
+
 
         //Product routes
         Route::get('products', 'ProductController@index');
