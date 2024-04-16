@@ -35,6 +35,7 @@ class Category extends JsonResource
                 : json_decode($this->resource->additional, true),
             'created_at'         => $this->created_at,
             'updated_at'         => $this->updated_at,
+            'products'           => $this->products
         ];
     }
 }
