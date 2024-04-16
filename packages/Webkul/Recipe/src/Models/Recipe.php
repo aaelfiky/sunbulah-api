@@ -80,10 +80,15 @@ class Recipe extends TranslatableModel implements RecipeContract
 
     public function getSimilarRecipesAttribute()
     {
-        return RecipeTranslation::where([
-            "locale" => core()->getRequestedLocaleCode(),
-            'main_product_id' => $this->product->id
-        ])->get();
+        $query = RecipeTranslation::query();
+
+        $query = $query->where("locale", core()->getRequestedLocaleCode());
+
+        if (!is_null($this->product)) {
+            $query = $query->where('main_product_id', $this->product->id);
+        }
+        
+        return $query->get();
     }
 
     // Relation with Topics

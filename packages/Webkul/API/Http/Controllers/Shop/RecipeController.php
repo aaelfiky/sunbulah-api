@@ -35,7 +35,7 @@ class RecipeController extends Controller
      */
     public function index()
     {
-        return RecipeResource::collection($this->recipeRepository->getAll());
+        return RecipeResource::collection($this->recipeRepository->getAll(request()->get('limit') ?? 10, request()->get('page') ?? 1));
     }
 
     /**

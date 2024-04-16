@@ -295,7 +295,8 @@ class OnepageController extends Controller
         }
 
         if ($cart->haveStockableItems() && ! $cart->shipping_address) {
-            throw new \Exception(trans('Please check shipping address.'));
+            $cart->shipping_address = $cart->billing_address;
+            // throw new \Exception(trans('Please check shipping address.'));
         }
 
         if (! $cart->billing_address) {

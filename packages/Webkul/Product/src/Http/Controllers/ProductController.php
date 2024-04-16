@@ -280,10 +280,12 @@ class ProductController extends Controller
 
         $this->productRepository->update($data, $id);
 
-        if (($data["product_type"] == 1 || $data["product_type"] == "1")) {
-            DB::update('update products set type = ? where id = ?', ["configurable", $id]);
-        } else {
-            DB::update('update products set type = ? where id = ?', ["simple", $id]);
+        if (isset($data["product_type"])) {
+            if (($data["product_type"] == 1 || $data["product_type"] == "1")) {
+                DB::update('update products set type = ? where id = ?', ["configurable", $id]);
+            } else {
+                DB::update('update products set type = ? where id = ?', ["simple", $id]);
+            }
         }
 
         session()->flash('success', trans('admin::app.response.update-success', ['name' => 'Product']));

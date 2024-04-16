@@ -352,7 +352,7 @@ class RecipeRepository extends Repository
         }
     }
 
-    public function getAll()
+    public function getAll($perPage = 10, $page = 1)
     {
         
         $query = $this->model->query();
@@ -379,6 +379,15 @@ class RecipeRepository extends Repository
            // TODO: Add Recipe Tags
         }
 
-        return $query->get();
+        $items = $query->forPage($page, $perPage)->get();
+
+        $recipesCount = Recipe::count();
+
+        $results = new LengthAwarePaginator($items, $recipesCount, $perPage, $page, [
+            'path'  => request()->url(),
+            'query' => request()->query(),
+        ]);
+
+        return $results;
     }
 }

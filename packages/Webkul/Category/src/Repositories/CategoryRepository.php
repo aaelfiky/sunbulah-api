@@ -108,8 +108,8 @@ class CategoryRepository extends Repository
         }
 
         return $categories[$id] = $id
-            ? $this->model::orderBy('position', 'ASC')->where('status', 1)->descendantsAndSelf($id)->toTree($id)
-            : $this->model::orderBy('position', 'ASC')->where('status', 1)->get()->toTree();
+            ? $this->model::with("products")->orderBy('position', 'ASC')->where('status', 1)->descendantsAndSelf($id)->toTree($id)
+            : $this->model::with("products")->orderBy('position', 'ASC')->where('status', 1)->get()->toTree();
     }
 
     /**
